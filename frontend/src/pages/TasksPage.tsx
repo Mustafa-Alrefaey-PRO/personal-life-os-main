@@ -321,14 +321,14 @@ export default function TasksPage() {
                     </td>
                     <td className="px-4 py-3 hidden sm:table-cell">
                       {task.category && (
-                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--bg-subtle)', color: 'var(--text-muted)' }}>
+                        <span className="inline-flex items-center text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--bg-subtle)', color: 'var(--text-muted)' }}>
                           {t(CATEGORY_I18N_KEYS[task.category] ?? task.category)}
                         </span>
                       )}
                     </td>
                     <td className="px-4 py-3 hidden sm:table-cell">
                       {task.priority && (
-                        <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{
+                        <span className="inline-flex items-center text-xs px-2 py-0.5 rounded-full font-medium" style={{
                           background: task.priority === 'High' ? 'var(--danger-bg)' : task.priority === 'Medium' ? 'var(--warning-bg)' : 'var(--success-bg)',
                           color: task.priority === 'High' ? 'var(--danger)' : task.priority === 'Medium' ? 'var(--warning)' : 'var(--success)',
                         }}>
