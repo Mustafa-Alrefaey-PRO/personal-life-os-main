@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Modal } from './Modal';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -36,20 +37,8 @@ export function ConfirmDialog({
   const confirmColor = variant === 'danger' ? 'var(--danger)' : 'var(--warning)';
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(2px)', WebkitBackdropFilter: 'blur(2px)' }}
-      onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
-    >
-      <div
-        className="w-full max-w-sm rounded-xl p-6 shadow-xl"
-        style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="confirm-title"
-        aria-describedby="confirm-msg"
-      >
-        <h3 id="confirm-title" className="text-base font-bold mb-2" style={{ color: 'var(--text-primary)' }}>{title}</h3>
+    <Modal open={open} onClose={onCancel} title={title} maxWidth="520px">
+      <div role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-msg">
         <p id="confirm-msg" className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>{message}</p>
         <div className="flex gap-3 justify-end">
           <button
@@ -71,6 +60,6 @@ export function ConfirmDialog({
           </button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }
