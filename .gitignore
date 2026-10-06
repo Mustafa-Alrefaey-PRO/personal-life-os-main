@@ -45,7 +45,4 @@ desktop.ini
 # ===== Backup / temp files =====
 *.backup
 *.old
-PersonalLifeOS.API/PersonalLifeOS.API.csproj.lscache
-PersonalLifeOS.Application/PersonalLifeOS.Application.csproj.lscache
-PersonalLifeOS.Domain/PersonalLifeOS.Domain.csproj.lscache
-PersonalLifeOS.Infrastructure/PersonalLifeOS.Infrastructure.csproj.lscache
+*.lscache
