@@ -60,53 +60,54 @@
    Dark mode tokens
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 .dark {
-  /* Backgrounds */
-  --bg-base:        #1a1917;
-  --bg-surface:     #222019;
-  --bg-subtle:      #2c2924;
-  --bg-muted:       #37342e;
-  --bg-input:       #272420;
-  --bg-sidebar:     #1e1c18;
-  --bg-row-hover:   #312e27;   /* Table row hover — between surface and subtle */
+  /* Neutral 'system' dark palette (cool grays) */
+  --bg-base:        #0b0b0c;   /* page background */
+  --bg-surface:     #161617;   /* cards and panels */
+  --bg-subtle:      #1f1f20;   /* subtle areas, headers */
+  --bg-muted:       #272728;   /* stronger muted background */
+  --bg-input:       #151516;   /* inputs */
+  --bg-sidebar:     #0f0f10;   /* sidebar panel */
+  --bg-row-hover:   #202023;   /* table row hover */
 
   /* Text */
-  --text-primary:   #f0ebe2;
-  --text-secondary: #cdc5bb;
-  --text-muted:     #9e9790;
+  --text-primary:   #e6e6e6;
+  --text-secondary: #cfcfcf;
+  --text-muted:     #9a9a9a;
 
   /* Borders */
-  --border-default: #3c3830;
-  --border-subtle:  #2e2b26;
-  --border-focus:   #e07a44;
+  --border-default: #2a2a2b;
+  --border-subtle:  #1f1f20;
+  --border-focus:   #3aa0ff;   /* bluish focus ring for familiarity */
 
-  /* Accent */
-  --accent:         #e07a44;
-  --accent-hover:   #cc6c38;
-  --accent-active:  #b85e2e;
-  --accent-light:   #2e1a0c;
+  /* Accent: keep accent hue but slightly brighter on dark */
+  /* Use a stable accent for dark mode to ensure consistent rendering */
+  --accent:         #d68648; /* slightly brighter warm accent on dark */
+  --accent-hover:   #c27640;
+  --accent-active:  #a86534;
+  --accent-light:   rgba(255,255,255,0.04);
   --accent-text:    #ffffff;
 
-  /* Semantic */
-  --success:        #3ecf6e;
-  --success-bg:     #0c2318;
-  --success-border: #1a4d30;
+  /* Semantic colors: preserve but tune contrast for dark */
+  --success:        #35d07a;
+  --success-bg:     rgba(53,208,122,0.06);
+  --success-border: rgba(53,208,122,0.18);
 
   --warning:        #f4b740;
-  --warning-bg:     #1e1400;
-  --warning-border: #4a3200;
+  --warning-bg:     rgba(244,183,64,0.06);
+  --warning-border: rgba(244,183,64,0.18);
 
-  --danger:         #f07070;
-  --danger-bg:      #220a0a;
-  --danger-border:  #5a1a1a;
+  --danger:         #ff7b7b;
+  --danger-bg:      rgba(255,123,123,0.06);
+  --danger-border:  rgba(255,123,123,0.18);
 
   --info:           #5ba0f0;
-  --info-bg:        #0a1a2e;
+  --info-bg:        rgba(91,160,240,0.06);
 
-  /* Shadows (stronger in dark) */
-  --shadow-xs:  0 1px 2px rgba(0,0,0,0.25);
-  --shadow-sm:  0 1px 3px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.20);
-  --shadow-md:  0 4px 12px rgba(0,0,0,0.40), 0 1px 3px rgba(0,0,0,0.25);
-  --shadow-lg:  0 8px 24px rgba(0,0,0,0.50), 0 2px 6px rgba(0,0,0,0.30);
+  /* Shadows (subtle in neutral dark) */
+  --shadow-xs:  0 1px 2px rgba(0,0,0,0.35);
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.45);
+  --shadow-md:  0 4px 12px rgba(0,0,0,0.55);
+  --shadow-lg:  0 8px 24px rgba(0,0,0,0.65);
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -176,6 +177,11 @@ body {
   line-height: 1.5;
 }
 
+/* Smooth theme transitions */
+body {
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    Button — global base + hover/active states
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
@@ -188,7 +194,7 @@ button:not(:disabled) {
   cursor: pointer;
   transition: filter 0.14s ease, transform 0.10s ease, box-shadow 0.14s ease;
 }
-button:not(:disabled):hover  { filter: brightness(0.90); }
+button:not(:disabled):hover  { filter: brightness(0.94); }
 button:not(:disabled):active { filter: brightness(0.82); transform: scale(0.97); }
 
 /* Focus ring for accessibility */
@@ -217,6 +223,7 @@ button:focus-visible {
   background: var(--accent);
   color: var(--accent-text);
 }
+.btn-primary:hover { background: var(--accent-hover); }
 /* Secondary */
 .btn-secondary {
   background: var(--bg-subtle);

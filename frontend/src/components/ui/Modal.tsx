@@ -21,7 +21,7 @@ export function Modal({ open, onClose, title, children, maxWidth = '520px' }: Mo
   return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(2px)' }}
+      style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(2px)', WebkitBackdropFilter: 'blur(2px)' }}
     >
       <div
         className="relative w-full rounded-2xl shadow-2xl modal-enter"
