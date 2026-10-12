@@ -9,11 +9,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const isInitialized   = useAuthStore((state) => state.isInitialized);
 
   if (!isInitialized) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-base)' }}>
-        <PageLoader />
-      </div>
-    );
+    return <div className="flex min-h-screen items-center justify-center bg-page"><PageLoader /></div>;
   }
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;

@@ -2,6 +2,16 @@ import api from './api';
 import type { LoginRequest, RegisterRequest, AuthResponse } from '../types/auth';
 import type { ApiResponse } from '../types/api';
 
+/** Reads the JWT `exp` claim; malformed tokens count as expired. */
+function isTokenExpired(token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return typeof payload.exp !== 'number' || payload.exp * 1000 <= Date.now();
+  } catch {
+    return true;
+  }
+}
+
 export const authService = {
   // Register a new user
   async register(data: RegisterRequest): Promise<ApiResponse<AuthResponse>> {
@@ -43,9 +53,15 @@ export const authService = {
     localStorage.removeItem('user');
   },
 
-  // Check if user is authenticated
+  // Check if a non-expired token is stored
   isAuthenticated(): boolean {
-    return !!localStorage.getItem('token');
+    const token = localStorage.getItem('token');
+    if (!token) return false;
+    if (isTokenExpired(token)) {
+      this.logout();
+      return false;
+    }
+    return true;
   },
 
   // Get current user from localStorage
