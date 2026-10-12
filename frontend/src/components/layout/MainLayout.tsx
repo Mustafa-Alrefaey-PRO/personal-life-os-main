@@ -1,340 +1,169 @@
-﻿import { useState, useCallback, memo } from 'react';
+import { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../stores/authStore';
 import { useSidebarStore } from '../../stores/sidebarStore';
-import { useRamadanStore } from '../../stores/ramadanStore';
 import { DarkModeToggle } from '../ui/DarkModeToggle';
 import { RamadanBanner } from '../ui/RamadanBanner';
+import { Icon, type IconName } from '../ui/Icon';
+import { Logo } from '../ui/Logo';
+import { LanguageMenu } from '../ui/LanguageMenu';
+import { SITE } from '../../config/site';
 
 interface MainLayoutProps { children: React.ReactNode }
 
-const navItems = [
-  {
-    to: '/dashboard', key: 'dashboard' as const,
-    icon: (
-      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <rect x="3" y="3" width="7" height="7" rx="1" strokeWidth="1.8"/>
-        <rect x="14" y="3" width="7" height="7" rx="1" strokeWidth="1.8"/>
-        <rect x="3" y="14" width="7" height="7" rx="1" strokeWidth="1.8"/>
-        <rect x="14" y="14" width="7" height="7" rx="1" strokeWidth="1.8"/>
-      </svg>
-    ),
-  },
-  {
-    to: '/tasks', key: 'tasks' as const,
-    icon: (
-      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-      </svg>
-    ),
-  },
-  {
-    to: '/bills', key: 'bills' as const,
-    icon: (
-      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
-      </svg>
-    ),
-  },
-  {
-    to: '/transactions', key: 'transactions' as const,
-    icon: (
-      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>
-      </svg>
-    ),
-  },
-  {
-    to: '/receipts', key: 'receipts' as const,
-    icon: (
-      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-      </svg>
-    ),
-  },
-  {
-    to: '/journal', key: 'journal' as const,
-    icon: (
-      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-      </svg>
-    ),
-  },
-  {
-    to: '/profile', key: 'profile' as const,
-    icon: (
-      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-      </svg>
-    ),
-  },
+const navItems: { to: string; key: IconName & ('dashboard' | 'tasks' | 'bills' | 'transactions' | 'receipts' | 'journal' | 'profile') }[] = [
+  { to: '/dashboard', key: 'dashboard' },
+  { to: '/tasks', key: 'tasks' },
+  { to: '/bills', key: 'bills' },
+  { to: '/transactions', key: 'transactions' },
+  { to: '/receipts', key: 'receipts' },
+  { to: '/journal', key: 'journal' },
+  { to: '/profile', key: 'profile' },
 ];
 
-interface SidebarInnerProps {
-  isCollapsed: boolean;
-  onNavClick?: () => void;
-}
-
-const SidebarInner = memo(function SidebarInner({ isCollapsed, onNavClick }: SidebarInnerProps) {
-  const { t, i18n } = useTranslation();
-  const { user, logout } = useAuthStore();
-  const ramadanEnabled = useRamadanStore((s) => s.enabled);
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const isRTL = i18n.language === 'ar';
-
-  const handleLogout = () => { queryClient.clear(); logout(); navigate('/login'); };
-  const toggleLang = () => i18n.changeLanguage(isRTL ? 'en' : 'ar');
-
+function Brand({ collapsed }: { collapsed: boolean }) {
   return (
-    <div className="flex flex-col h-full">
-      {/* Logo */}
-      <div
-        className="shrink-0 flex items-center py-5"
-        style={{
-          borderBottom: '1px solid var(--border-subtle)',
-          justifyContent: isCollapsed ? 'center' : undefined,
-          gap: isCollapsed ? 0 : '0.75rem',
-          paddingLeft: isCollapsed ? 0 : '1rem',
-          paddingRight: isCollapsed ? 0 : '1rem',
-        }}
-      >
-        <div className="relative shrink-0">
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold select-none"
-            style={{ background: 'var(--accent)' }}
-          >
-            PL
-          </div>
-          {ramadanEnabled && (
-            <svg
-              width="13" height="13" viewBox="0 0 24 24" fill="#fbbf24"
-              className="absolute -top-1.5 -end-1.5 pointer-events-none"
-              style={{ filter: 'drop-shadow(0 0 4px rgba(251,191,36,0.7))' }}
-            >
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-            </svg>
-          )}
-        </div>
-        {!isCollapsed && (
-          <span className="text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
-            {t('auth.appName')}
-          </span>
-        )}
-      </div>
-
-      {/* Nav items */}
-      <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto">
-        {navItems.map(({ to, key, icon }) => (
-          <NavLink
-            key={to}
-            to={to}
-            onClick={onNavClick}
-            title={isCollapsed ? t(`nav.${key}`) : undefined}
-            className={({ isActive }) =>
-              `flex items-center py-2 rounded-lg text-sm font-medium transition-colors ${
-                isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'
-              } ${
-                isActive
-                  ? 'text-[var(--accent)] bg-[var(--accent-light)]'
-                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-subtle)]'
-              }`
-            }
-          >
-            <span className="shrink-0">{icon}</span>
-            {!isCollapsed && <span>{t(`nav.${key}`)}</span>}
-          </NavLink>
-        ))}
-      </nav>
-
-      {/* Bottom controls */}
-      <div
-        className="shrink-0"
-        style={{
-          borderTop: '1px solid var(--border-subtle)',
-          padding: isCollapsed ? '16px 8px' : '16px 12px',
-        }}
-      >
-        {isCollapsed ? (
-          <div className="flex flex-col items-center gap-2.5">
-            <button
-              onClick={toggleLang}
-              className="w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold"
-              style={{ background: 'var(--bg-subtle)', color: 'var(--text-secondary)' }}
-            >{isRTL ? 'EN' : 'ع'}</button>
-            <DarkModeToggle />
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
-              style={{ background: 'var(--accent-light)', color: 'var(--accent)', cursor: 'default' }}
-              title={`${user?.fullName}\n${user?.email}`}
-            >{user?.fullName?.charAt(0)?.toUpperCase() ?? 'U'}</div>
-            <button
-              onClick={handleLogout}
-              title={t('nav.logout')}
-              className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
-              style={{ color: 'var(--danger)', background: 'var(--danger-bg)' }}
-            >
-              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-              </svg>
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between px-1">
-              <button
-                onClick={toggleLang}
-                className="text-xs font-semibold px-2.5 py-1.5 rounded-lg"
-                style={{ background: 'var(--bg-subtle)', color: 'var(--text-secondary)' }}
-              >{isRTL ? 'EN' : 'ع'}</button>
-              <DarkModeToggle />
-            </div>
-            <div className="px-1 py-2.5 rounded-lg" style={{ background: 'var(--bg-subtle)' }}>
-              <div className="flex items-center gap-3 mb-1.5">
-                <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
-                  style={{ background: 'var(--accent-light)', color: 'var(--accent)' }}
-                >{user?.fullName?.charAt(0)?.toUpperCase() ?? 'U'}</div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
-                    {user?.fullName}
-                  </p>
-                  <p className="text-[10px] truncate" style={{ color: 'var(--text-muted)' }}>
-                    {user?.email}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-colors"
-              style={{ background: 'var(--danger-bg)', color: 'var(--danger)' }}
-            >
-              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-              </svg>
-              {t('nav.logout')}
-            </button>
-          </div>
-        )}
-      </div>
+    <div className={`flex h-20 shrink-0 items-center gap-3 border-b border-sidebar-line ${collapsed ? 'justify-center' : 'px-6'}`}>
+      <Logo withName={!collapsed} />
     </div>
   );
-});
+}
+
+function SidebarNav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () => void }) {
+  const { t } = useTranslation();
+  return (
+    // Collapsed menus are short, so overflow stays visible to let the hover tooltips show
+    <nav className={`brand-scroll flex-1 space-y-1 py-5 pe-2 ${collapsed ? 'overflow-visible' : 'overflow-y-auto'}`}>
+      {!collapsed && <p className="ps-4 pb-2 text-xs font-semibold tracking-wider text-sidebar-muted uppercase">{t('nav.menu')}</p>}
+      {navItems.map(({ to, key }) => (
+        <NavLink
+          key={to}
+          to={to}
+          onClick={onNavigate}
+          aria-label={collapsed ? t(`nav.${key}`) : undefined}
+          className={({ isActive }) =>
+            `group/item relative flex h-[51px] items-center gap-3 text-lg font-medium text-sidebar-text transition-colors duration-150 ${
+              collapsed ? 'ms-2 justify-center rounded-xl' : 'rounded-e-xl ps-4'
+            } ${isActive ? 'bg-sidebar-hover' : 'hover:bg-sidebar-hover hover:shadow-card'}`
+          }
+        >
+          <Icon name={key} className="size-5 shrink-0" strokeWidth={1.75} />
+          {collapsed ? (
+            <span className="pointer-events-none absolute start-full z-50 ms-3 rounded-md border border-line bg-surface px-3 py-1.5 text-sm font-medium whitespace-nowrap text-title opacity-0 shadow-pop transition-opacity duration-150 group-hover/item:opacity-100">
+              {t(`nav.${key}`)}
+            </span>
+          ) : (
+            <span className="truncate">{t(`nav.${key}`)}</span>
+          )}
+        </NavLink>
+      ))}
+    </nav>
+  );
+}
+
+function UserMenu() {
+  const { t } = useTranslation();
+  const { user, logout } = useAuthStore();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const initial = user?.fullName?.charAt(0)?.toUpperCase() ?? 'U';
+
+  const handleLogout = () => { queryClient.clear(); logout(); navigate('/login', { replace: true }); };
+
+  return (
+    <div className="flex h-16 items-center gap-3 border-s border-line ps-4">
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-line-strong bg-band text-sm font-bold text-title">{initial}</span>
+      <div className="hidden min-w-0 leading-tight sm:block">
+        <p className="max-w-40 truncate text-sm font-semibold text-title">{user?.fullName}</p>
+        <p className="max-w-40 truncate text-xs text-muted">{user?.email}</p>
+      </div>
+      <button
+        type="button"
+        onClick={handleLogout}
+        title={t('nav.logout')}
+        aria-label={t('nav.logout')}
+        className="inline-flex size-10 items-center justify-center rounded-md text-title transition-colors duration-150 hover:bg-danger-soft hover:text-danger"
+      >
+        <Icon name="logout" className="size-4 rtl:rotate-180" />
+      </button>
+    </div>
+  );
+}
 
 export const MainLayout = ({ children }: MainLayoutProps) => {
   const location = useLocation();
   const { t, i18n } = useTranslation();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const { collapsed, toggle } = useSidebarStore();
   const isRTL = i18n.language === 'ar';
 
-  const closeMobile = useCallback(() => setSidebarOpen(false), []);
-  const chevronRotate = (collapsed !== isRTL) ? '180deg' : '0deg';
-
   return (
-    <div className="min-h-screen flex" style={{ background: 'var(--bg-base)', color: 'var(--text-primary)' }}>
-
-      {/* Desktop sidebar wrapper (animates width) */}
-      <div
-        className="hidden md:block relative shrink-0"
-        style={{
-          width: collapsed ? '60px' : '224px',
-          transition: 'width 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
-        }}
-      >
-        <aside
-          className="sticky top-0 h-screen flex flex-col overflow-hidden"
-          style={{
-            background: 'var(--bg-sidebar)',
-            borderInlineEnd: '1px solid var(--border-subtle)',
-            width: '100%',
-          }}
-        >
-          <SidebarInner isCollapsed={collapsed} />
-        </aside>
-
-        {/* Collapse toggle button */}
+    <div className="flex min-h-screen bg-page text-body">
+      {/* Desktop sidebar. z-[45] keeps its edge toggle above the content area (sticky creates its own layer) */}
+      <aside className={`group/sidebar sticky top-0 z-[45] hidden h-screen shrink-0 flex-col border-e border-sidebar-line bg-sidebar transition-[width] duration-200 ease-linear md:flex ${collapsed ? 'w-20' : 'w-[278px]'}`}>
+        <Brand collapsed={collapsed} />
         <button
+          type="button"
           onClick={toggle}
-          className="sidebar-collapse-btn w-5 h-5 rounded-full flex items-center justify-center shadow-sm"
-          style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-default)',
-            color: 'var(--text-muted)',
-          }}
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          title={collapsed ? t('nav.expandSidebar') : t('nav.collapseSidebar')}
+          aria-label={collapsed ? t('nav.expandSidebar') : t('nav.collapseSidebar')}
+          aria-expanded={!collapsed}
+          className={`absolute -end-[18px] top-[62px] z-50 inline-flex size-9 items-center justify-center rounded-full border border-line-strong bg-band text-title transition-all duration-400 ease-in-out hover:bg-hover focus-visible:scale-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/30 ${
+            // Hidden until the sidebar is hovered; always visible when collapsed so it can be reopened
+            collapsed ? '' : 'scale-95 opacity-0 group-hover/sidebar:scale-100 group-hover/sidebar:opacity-100'
+          }`}
         >
-          <svg
-            width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-            style={{ transform: `rotate(${chevronRotate})`, transition: 'transform 0.28s' }}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7"/>
-          </svg>
+          {/* Points toward the direction the sidebar will move; mirrored in RTL */}
+          <Icon name="chevronLeft" strokeWidth={1.75} className={`size-5 transition-transform duration-200 ${collapsed !== isRTL ? 'rotate-180' : ''}`} />
         </button>
-      </div>
+        <SidebarNav collapsed={collapsed} />
+      </aside>
 
-      {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
-        <div
-          className="md:hidden fixed inset-0 z-50 flex mobile-overlay"
-          style={{ background: 'rgba(0,0,0,0.45)' }}
-          onClick={closeMobile}
-        >
-          <aside
-            className="h-full flex flex-col mobile-sidebar-panel"
-            style={{ background: 'var(--bg-sidebar)', width: '224px', flexShrink: 0 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <SidebarInner isCollapsed={false} onNavClick={closeMobile} />
+      {/* Mobile drawer */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 flex bg-overlay md:hidden" onClick={() => setMobileOpen(false)}>
+          <aside className="animate-slide-in-start flex h-full w-[278px] flex-col border-e border-sidebar-line bg-sidebar" onClick={(e) => e.stopPropagation()}>
+            <Brand collapsed={false} />
+            <SidebarNav collapsed={false} onNavigate={() => setMobileOpen(false)} />
           </aside>
         </div>
       )}
 
-      {/* Main area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile top bar */}
-        <header
-          className="md:hidden sticky top-0 z-40 h-12 flex items-center justify-between px-4"
-          style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--border-subtle)' }}
-        >
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* Top bar */}
+        <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between gap-3 bg-surface px-4 sm:px-6">
+          {/* Mobile only: opens the drawer (desktop uses the round toggle on the sidebar edge) */}
           <button
-            onClick={() => setSidebarOpen(true)}
-            className="w-8 h-8 flex items-center justify-center rounded-lg"
-            style={{ background: 'var(--bg-subtle)', color: 'var(--text-secondary)' }}
+            type="button"
+            onClick={() => setMobileOpen(true)}
+            aria-label={t('nav.openMenu')}
+            className="inline-flex size-10 items-center justify-center rounded-md text-title transition-colors duration-150 hover:bg-hover md:hidden"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"/>
-            </svg>
+            <Icon name="menu" />
           </button>
-          <div className="flex items-center gap-2.5">
-            <div
-              className="w-6 h-6 rounded-md flex items-center justify-center text-white text-xs font-bold"
-              style={{ background: 'var(--accent)' }}
-            >PL</div>
-            <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{t('auth.appName')}</span>
+          <div className="hidden md:block" />
+          <div className="flex items-center gap-2">
+            <LanguageMenu />
+            <DarkModeToggle />
+            <UserMenu />
           </div>
-          <DarkModeToggle />
         </header>
 
-        {/* Ramadan banner — stable outside keyed main so it doesn't re-animate on navigation */}
-        <RamadanBanner />
-
-        {/* Page content — key re-triggers animation on route change */}
-        <main key={location.pathname} className="flex-1 page-enter" style={{ padding: '1.5rem 1.25rem' }}>
-          <div className="max-w-5xl mx-auto page-frame">
+        {/* key re-triggers the enter animation on navigation */}
+        <main key={location.pathname} className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
+          {/* key on <main> restarts the staggered entrance on every navigation */}
+          <div className="page-stagger w-full">
+            <RamadanBanner />
             {children}
           </div>
         </main>
 
-        {/* Footer */}
-        <footer
-          className="py-3 text-center text-xs"
-          style={{ color: 'var(--text-muted)', borderTop: '1px solid var(--border-subtle)' }}
-        >
+        <footer className="border-t border-line bg-surface px-6 py-4 text-center text-sm text-title">
           {t('common.copyright', { year: new Date().getFullYear() })}
+          <span className="mx-2 text-line-strong">|</span>
+          <span className="text-muted">{t('common.builtBy', { name: SITE.ownerName })}</span>
         </footer>
       </div>
     </div>
