@@ -1,249 +1,81 @@
-# Personal Life OS - Testing Guide
+# Testing Guide
 
-## ✅ What's Been Completed
+How to run Personal Life OS locally and check that it works. For architecture and conventions see [CLAUDE.md](../CLAUDE.md).
 
-### Architecture & Infrastructure
-- ✅ Clean Architecture solution with 4 projects
-- ✅ Domain entities with audit fields and StatusCode
-- ✅ Entity Framework Core DbContext with SQL Server
-- ✅ ASP.NET Core Identity for authentication
-- ✅ Database migration applied successfully
-- ✅ Repositories for data access
-- ✅ Services for business logic
+## 1. Run the application
 
-### Features Implemented
-- ✅ **Authentication**: Login, Register, Logout
-- ✅ **Dashboard**: Shows task stats, recent tasks, upcoming bills, monthly expenses
-- ✅ **Tasks CRUD**: Create, Read, Update, Delete, Complete tasks
-- ✅ **UI**: Bootstrap 5 with dark mode toggle
-- ✅ **Navigation**: Responsive navbar with user menu
-
-### Database Tables Created
-- AspNetUsers (with Identity)
-- Tasks
-- Bills
-- DailyJournals
-- Receipts
-- Transactions
-- MonthlyPayments
-
----
-
-## 🚀 How to Run the Application
-
-### Step 1: Navigate to Web Project
 ```bash
-cd "F:\Profile\Learning\Personal Life OS\PersonalLifeOS.Web"
+# Database (SQL Server in Docker)
+docker start sqlserver
+
+# One-time: create PersonalLifeOS.API/appsettings.Development.json
+# from appsettings.Development.example.json (connection string + JWT key)
+
+# Apply migrations
+cd PersonalLifeOS.Infrastructure
+dotnet ef database update --startup-project ../PersonalLifeOS.API
+
+# Backend: http://localhost:5207 (Swagger UI at the root)
+cd ../PersonalLifeOS.API && dotnet run
+
+# Frontend: http://localhost:5173 (in a second terminal)
+cd frontend && npm install && npm run dev
 ```
 
-### Step 2: Run the Application
+## 2. Automated checks
+
+There are no unit tests yet. Before committing, these must pass:
+
 ```bash
-dotnet run
+dotnet build PersonalLifeOS.slnx      # 0 errors, 0 warnings
+cd frontend && npm run lint && npm run build
 ```
 
-### Step 3: Open in Browser
-The application will start on:
-- **HTTPS**: https://localhost:5001
-- **HTTP**: http://localhost:5000
-
-Open your browser and go to: **https://localhost:5001**
-
----
-
-## 🧪 Testing Checklist
-
-### 1. User Registration & Login
-- [ ] Go to https://localhost:5001
-- [ ] You should see the Login page
-- [ ] Click "Register here"
-- [ ] Fill in the registration form:
-  - Full Name: Your Name
-  - Email: test@example.com
-  - Password: Test123 (minimum 6 characters)
-  - Confirm Password: Test123
-- [ ] Click "Register"
-- [ ] You should be automatically logged in and redirected to Dashboard
-
-### 2. Dashboard
-- [ ] Check that you see:
-  - Welcome message
-  - Statistics cards (Total Tasks, Completed, Pending - all should be 0)
-  - Recent Tasks section (empty)
-  - Upcoming Bills section (empty)
-  - Monthly Expenses ($0.00)
-
-### 3. Create a Task
-- [ ] Click "Tasks" in the navigation bar
-- [ ] Click "Create New Task" button
-- [ ] Fill in the form:
-  - Title: "My First Task"
-  - Description: "Testing the task creation"
-  - Due Date: Select tomorrow's date
-  - Category: "Personal"
-- [ ] Click "Create Task"
-- [ ] You should see a success message
-- [ ] The task should appear in the list
-
-### 4. Task Operations
-- [ ] Click "Complete" button on the task
-  - Badge should change to green "Completed"
-  - Task title should have strikethrough
-- [ ] Click "Edit" button
-  - Change the title or description
-  - Click "Update Task"
-  - Changes should be reflected
-- [ ] Click "Delete" button
-  - Confirm the deletion
-  - Task should disappear from the list
-
-### 5. Create Multiple Tasks
-- [ ] Create 3-5 more tasks with different:
-  - Titles
-  - Categories (Work, Personal, Shopping)
-  - Due dates
-  - Status (mark some as completed)
-
-### 6. Dashboard Verification
-- [ ] Go back to Dashboard
-- [ ] Verify:
-  - Total Tasks count is correct
-  - Completed Tasks count is correct
-  - Pending Tasks count is correct
-  - Recent tasks show up (max 5)
-
-### 7. UI Features
-- [ ] Click the moon icon in navbar to toggle dark mode
-  - Verify the theme switches between light and dark
-  - Refresh the page - theme should persist
-- [ ] Click on your name in the navbar
-  - Dropdown should appear with "Logout" option
-- [ ] Test responsive design
-  - Resize browser window
-  - Navbar should collapse to hamburger menu on mobile
-
-### 8. Logout & Login
-- [ ] Click on your name → Logout
-- [ ] You should be redirected to Login page
-- [ ] Login with the same credentials
-- [ ] You should see your tasks again
-
----
-
-## ✅ Expected Behavior
+## 3. Manual checklist
 
 ### Authentication
-- ✔️ Unauthenticated users are redirected to Login
-- ✔️ Registration creates a new user and logs them in
-- ✔️ Login redirects to Dashboard
-- ✔️ Logout redirects to Login page
+- [ ] Register a new account; you land on the dashboard
+- [ ] Registering the same email again shows "An account with this email already exists"
+- [ ] Wrong password shows "Invalid email or password"
+- [ ] 5 wrong passwords in a row lock the account for 5 minutes ("Too many failed attempts")
+- [ ] After login, pressing Back does not show the login form; visiting `/login` redirects to the dashboard
+- [ ] Logout returns to the login page; Back does not reopen the dashboard
+- [ ] Theme and language toggles work on the login and register pages
 
-### Tasks
-- ✔️ Tasks are user-specific (each user only sees their own)
-- ✔️ Soft delete is implemented (deleted tasks have StatusCode = "Deleted")
-- ✔️ Completed tasks show with green badge and strikethrough
-- ✔️ Tasks are ordered by creation date (newest first)
+### Tasks, bills, journal, transactions
+- [ ] Create, edit and delete an item on each page; a toast confirms each action
+- [ ] Complete/uncomplete a task and pay/unpay a bill
+- [ ] A bill due today shows as Pending, not Overdue
+- [ ] Negative or zero amounts are rejected
+- [ ] Search, date range and status filters narrow the list; pagination follows the filtered list
+
+### Receipts
+- [ ] Upload a JPG/PNG/WEBP/GIF receipt (max 10 MB); the thumbnail and preview load
+- [ ] Uploading a non-image file shows "Only JPG, PNG, WEBP and GIF images are allowed"
+- [ ] Replacing the image keeps the receipt; deleting the receipt removes the image file from `PersonalLifeOS.API/App_Data/receipts`
+- [ ] The header total matches the filtered list
 
 ### Dashboard
-- ✔️ Shows accurate statistics
-- ✔️ Recent tasks limited to 5 items
-- ✔️ All widgets are responsive
+- [ ] Stats match the data on each page
+- [ ] Upcoming bills lists only unpaid bills due today or later
+- [ ] The progress ring shows completed (green) and overdue (red) as separate segments
 
-### UI/UX
-- ✔️ Dark mode persists across sessions (localStorage)
-- ✔️ Bootstrap 5 styling throughout
-- ✔️ Responsive design works on mobile
-- ✔️ Icons from Bootstrap Icons
+### Look and feel
+- [ ] Light mode: white page, white cards with gray outlines; dark mode: charcoal page and panels
+- [ ] No flash of the wrong theme on reload
+- [ ] Arabic switches the layout to RTL, including the sidebar, alerts and toasts
 
----
+## 4. Security checks (API)
 
-## 🐛 Known Limitations (MVP)
+With two accounts A and B:
+- [ ] B requesting A's task/bill/receipt by id gets 404
+- [ ] B requesting A's receipt image gets 404; without a token, 401
+- [ ] `PUT /api/tasks/{id}` with a `statusCode` field does not change the status
+- [ ] Server errors return a generic message, never exception details
 
-These are intentionally not implemented yet (Phase 1 focus):
+## Troubleshooting
 
-- ❌ Bills CRUD (controllers/views not created yet)
-- ❌ Journal CRUD (controllers/views not created yet)
-- ❌ Receipts with file upload (controllers/views not created yet)
-- ❌ Transactions CRUD (controllers/views not created yet)
-- ❌ Arabic language switching (Phase 1 MVP)
-- ❌ Background jobs for bill reminders (Phase 3)
-- ❌ Comprehensive validation (FluentValidation - Phase 2)
-- ❌ Logging to files (Serilog - Phase 2)
-
----
-
-## 🔍 Troubleshooting
-
-### Issue: Can't connect to database
-**Solution:** Make sure LocalDB is running. Run:
-```bash
-sqllocaldb start MSSQLLocalDB
-```
-
-### Issue: Migration fails
-**Solution:** Delete the database and re-run:
-```bash
-cd PersonalLifeOS.Web
-dotnet ef database drop --project ../PersonalLifeOS.Infrastructure/PersonalLifeOS.Infrastructure.csproj
-dotnet ef database update --project ../PersonalLifeOS.Infrastructure/PersonalLifeOS.Infrastructure.csproj
-```
-
-### Issue: Application won't start
-**Solution:** Check if port is already in use. You can change the port in `Properties/launchSettings.json`
-
-### Issue: Can't see Bootstrap Icons
-**Solution:** Make sure you have internet connection (icons loaded from CDN)
-
----
-
-## 📊 Database Schema
-
-You can explore the database using SQL Server Management Studio:
-- Server: `(localdb)\MSSQLLocalDB`
-- Database: `PersonalLifeOSDb`
-- Authentication: Windows Authentication
-
-Tables to explore:
-- `AspNetUsers` - User accounts
-- `Tasks` - User tasks
-- `Bills` - Bill reminders (empty for now)
-- `Transactions` - Financial transactions (empty for now)
-
----
-
-## 🎯 Next Steps (After Testing)
-
-Once you've tested and verified everything works:
-
-1. **Phase 1 Remaining** (if needed):
-   - Add Bills CRUD
-   - Add Transactions CRUD
-   - Add Journal CRUD
-   - Add Receipts with file upload
-
-2. **Phase 2 - Polish** (from the plan):
-   - Add Serilog for file logging
-   - Add Data Annotations validation
-   - Custom error pages
-   - Basic unit tests
-
-3. **Phase 3 - Smart Features**:
-   - Hangfire for bill reminders
-   - Response caching
-   - Health checks
-
----
-
-## ✨ Success Criteria
-
-Phase 1 MVP is successful if:
-- ✅ You can register and login
-- ✅ You can create, edit, complete, and delete tasks
-- ✅ Dashboard shows accurate statistics
-- ✅ Dark mode works and persists
-- ✅ UI is responsive
-- ✅ No errors in the browser console
-- ✅ All data persists after logout/login
-
----
-
-**Ready to test!** Run `dotnet run` in the PersonalLifeOS.Web folder and start testing! 🚀
+- **API exits with "ConnectionStrings:DefaultConnection is not set" or a JwtSettings error**: create `appsettings.Development.json` (step 1).
+- **Cannot connect to SQL Server**: `docker ps` should list `sqlserver` on port 1433; start it with `docker start sqlserver`.
+- **Frontend shows "Unable to connect to the server"**: the API isn't running on port 5207, or `VITE_API_URL` points elsewhere.
+- **Logged out after an update**: the JWT key was rotated; sign in again.

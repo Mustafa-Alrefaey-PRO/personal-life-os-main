@@ -1,3 +1,5 @@
+> **Historical document.** This describes an earlier MVC version of the project (`PersonalLifeOS.Web`, `wwwroot` uploads, LocalDB). For the current setup see [CLAUDE.md](../CLAUDE.md) and [PROJECT-STATE.md](PROJECT-STATE.md).
+
 # API Conversion Status & Next Steps
 
 ## ✅ What We've Completed So Far

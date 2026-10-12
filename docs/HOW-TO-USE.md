@@ -1,3 +1,5 @@
+> **Note:** this guide was written while Bills, Receipts and Journal were placeholders. All of them are now fully implemented; see [TESTING-GUIDE.md](TESTING-GUIDE.md) for a current walkthrough.
+
 # 🎉 Personal Life OS - Complete Feature Guide
 
 ## ✅ All Features Implemented!
@@ -92,9 +94,9 @@ Visit **http://localhost:5173** to start using the app!
 **Pages you can navigate to:**
 - Dashboard
 - Tasks
-- Bills (placeholder)
-- Receipts (placeholder)
-- Journal (placeholder)
+- Bills
+- Receipts
+- Journal
 - Profile
 
 ---
@@ -222,18 +224,18 @@ Visit **http://localhost:5173** to start using the app!
 ## 🔧 Technical Stack
 
 ### Frontend
-- React 18 with TypeScript
+- React 19 with TypeScript
 - Vite (super fast dev server)
 - Tailwind CSS (utility-first styling)
 - TanStack Query (server state)
 - Zustand (client state)
-- React Router v6 (navigation)
+- React Router v7 (navigation)
 - Axios (HTTP client with JWT)
 
 ### Backend
 - .NET 10 Web API
 - Entity Framework Core
-- SQL Server LocalDB
+- SQL Server (Docker)
 - JWT Authentication
 - Clean Architecture
 - Swagger Documentation

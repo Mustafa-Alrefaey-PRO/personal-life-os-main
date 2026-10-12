@@ -228,13 +228,13 @@ Open http://localhost:5173 and you can:
 
 ## ⚡ Technologies Used
 
-- **Frontend:** React 18, TypeScript, Vite
+- **Frontend:** React 19, TypeScript, Vite
 - **Styling:** Tailwind CSS, Dark Mode
 - **State:** Zustand, TanStack Query
-- **Routing:** React Router v6
+- **Routing:** React Router v7
 - **API:** Axios with JWT interceptors
 - **Backend:** .NET 10 Web API, EF Core
-- **Database:** SQL Server LocalDB
+- **Database:** SQL Server (Docker)
 - **Auth:** JWT Bearer tokens
 
 ---

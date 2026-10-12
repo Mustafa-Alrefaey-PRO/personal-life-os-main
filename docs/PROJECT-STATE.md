@@ -1,6 +1,6 @@
 # Personal Life OS — Complete Project State
 
-> **Last Updated:** March 6, 2026  
+> **Last Updated:** October 12, 2026  
 > **Status:** Active Development  
 > **Runtime:** .NET 10 + React 19 + TypeScript
 
@@ -41,6 +41,8 @@
 
 ---
 
+> **Note:** parts of sections 3–4 (repository methods, controller try/catch, middleware order) predate the October 2026 hardening: user-scoped `UserOwnedRepository<T>`, a global `ApiExceptionHandler`, private receipt storage and no client-set status. [CLAUDE.md](../CLAUDE.md) is the up-to-date summary of those conventions.
+
 ## 1. Project Overview
 
 **Personal Life OS** is a single-user personal productivity platform for managing:
@@ -54,7 +56,7 @@
 
 **Architecture:** Clean Architecture (4-layer .NET solution) + React SPA  
 **Auth:** JWT Bearer tokens (60-minute expiry)  
-**Database:** SQL Server LocalDB with EF Core  
+**Database:** SQL Server (Docker) with EF Core  
 **Localization:** English + Arabic with full RTL support  
 **Theme:** Light/Dark mode with CSS custom properties  
 **Font:** Tajawal (Google Fonts)  
@@ -148,7 +150,7 @@ UpdatedDate : DateTime?
 | Amount | decimal | — | decimal(18,2) |
 | DueDate | DateTime | — | Required |
 | ReminderDaysBefore | int | 3 | Days before due date to remind |
-| StatusCode | string | `GeneralStatuses.PENDING` | PENDING / Paid / DELETED |
+| StatusCode | string | `GeneralStatuses.PENDING` | PENDING / PAID / DELETED |
 | UserId | string | `""` | Required, max 450 |
 
 #### DailyJournal (`PersonalLifeOS.Domain/Entities/DailyJournal.cs`)
@@ -202,11 +204,12 @@ UpdatedDate : DateTime?
 
 #### GeneralStatuses (`PersonalLifeOS.Domain/Enums/GeneralStatuses.cs`)
 ```csharp
-public record GeneralStatuses
+public static class GeneralStatuses
 {
     public const string PENDING   = "PENDING";
     public const string COMPLETED = "COMPLETED";
-    public const string CANCLED   = "CANCLED";     // intentional spelling
+    public const string PAID      = "PAID";
+    public const string CANCELLED = "CANCELLED";
     public const string DELETED   = "DELETED";
     public const string ACTIVE    = "ACTIVE";
 }
@@ -520,7 +523,7 @@ All services are in `PersonalLifeOS.Infrastructure/Services/`. Each injects its 
 | `GetBillByIdAsync(id)` | Delegates to repo |
 | `CreateBillAsync(dto, userId)` | Maps DTO → entity, `StatusCode = PENDING` |
 | `UpdateBillAsync(dto, userId)` | Maps all fields |
-| `MarkBillAsPaidAsync(id, userId)` | Sets `StatusCode = "Paid"` |
+| `MarkBillAsPaidAsync(id, userId)` | Sets `StatusCode = GeneralStatuses.PAID` |
 | `DeleteBillAsync(id, userId)` | Soft delete |
 
 #### JournalService
@@ -537,7 +540,7 @@ All services are in `PersonalLifeOS.Infrastructure/Services/`. Each injects its 
 |--------|-------|
 | `GetAllReceiptsAsync(userId)` | Delegates to repo |
 | `GetReceiptByIdAsync(id)` | Delegates to repo |
-| `CreateReceiptAsync(dto, imageFile, userId)` | Saves image via `FileStorageService`, stores filename in `ImagePath`, `StatusCode = ACTIVE` |
+| `CreateReceiptAsync(dto, imageFile, userId)` | Validates and saves the image via `IFileStorage`, stores the file id in `ImagePath`, `StatusCode = ACTIVE` |
 | `UpdateReceiptAsync(dto, userId)` | Updates metadata only (no image change) |
 | `UpdateReceiptImageAsync(id, imageFile, userId)` | Deletes old image file, saves new, updates `ImagePath` |
 | `DeleteReceiptAsync(id, userId)` | Deletes physical image file, then soft-deletes entity |
@@ -687,7 +690,7 @@ All `Amount` fields configured as `decimal(18,2)`.
 
 #### Connection String
 ```
-Data Source=(localdb)\MSSQLLocalDB;Database=PersonalLifeOSDb;
+Data Source=localhost,1433;Initial Catalog=PersonalLifeOSDb;User ID=sa;Password=<secret>;
 Integrated Security=True;Persist Security Info=False;Pooling=False;
 MultipleActiveResultSets=True;Encrypt=True;TrustServerCertificate=True
 ```
@@ -702,9 +705,17 @@ MultipleActiveResultSets=True;Encrypt=True;TrustServerCertificate=True
 
 ### 3.10 File Storage
 
-#### FileStorageService (`PersonalLifeOS.Infrastructure/FileStorage/FileStorageService.cs`)
-| Method | Description |
-|--------|-------------|
+#### IFileStorage (`PersonalLifeOS.Infrastructure/FileStorage/`)
+| Implementation | When | Where files go |
+|----------------|------|----------------|
+| `LocalFileStorage` | `Storage:Provider = Local` (default) | `PersonalLifeOS.API/App_Data/receipts/` (outside wwwroot, git-ignored) |
+| `GoogleDriveStorageService` | `Storage:Provider = GoogleDrive` | Private Drive folder (owner-only sharing) |
+
+- Images are **never public**: they are streamed to their owner by `GET /api/receipts/{id}/image`.
+- `ImageFileRules` accepts JPG/PNG/WEBP/GIF up to 10 MB (checked by extension and content type).
+- Replacing an image uploads the new file before deleting the old one; deleting a receipt deletes its file.
+
+--------|-------------|
 | `SaveFileAsync(stream, fileName)` | Saves with GUID prefix (`{Guid}_{originalName}`), returns filename only |
 | `DeleteFile(fileName)` | Deletes from upload directory |
 | `GetFilePath(fileName)` | Returns full filesystem path |
@@ -721,7 +732,7 @@ MultipleActiveResultSets=True;Encrypt=True;TrustServerCertificate=True
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Data Source=(localdb)\\MSSQLLocalDB;Database=PersonalLifeOSDb;..."
+    "DefaultConnection": ""   // real value lives in appsettings.Development.json
   },
   "JwtSettings": {
     "SecretKey": "YourSuperSecretKeyForDevelopment12345678901234567890",
@@ -762,7 +773,7 @@ MultipleActiveResultSets=True;Encrypt=True;TrustServerCertificate=True
 **DI Registrations (Scoped):**
 - 5 Repositories: `TaskRepository`, `JournalRepository`, `ReceiptRepository`, `BillRepository`, `TransactionRepository`
 - 5 Services: `TaskService`, `JournalService`, `ReceiptService`, `BillService`, `TransactionService`
-- `FileStorageService` (Singleton)
+- `IFileStorage` (Singleton; `LocalFileStorage` or `GoogleDriveStorageService`)
 
 **JSON Serialization:**
 - `JsonStringEnumConverter` registered for enum serialization (e.g., `TransactionType`)
@@ -1381,7 +1392,7 @@ Used in pages to render localized category labels from English DB values.
 ## 5. Database Schema
 
 ```
-PersonalLifeOSDb (SQL Server LocalDB)
+PersonalLifeOSDb (SQL Server in Docker)
 ├── AspNetUsers (Identity — extended with FullName, PreferredLanguage, StatusCode, Audit fields)
 ├── AspNetRoles
 ├── AspNetUserRoles
