@@ -1,6 +1,6 @@
 # Testing Guide
 
-How to run Personal Life OS locally and check that it works. For architecture and conventions see [CLAUDE.md](../CLAUDE.md).
+How to run Personal Life OS locally and check that it works. For structure and conventions see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## 1. Run the application
 
@@ -8,8 +8,7 @@ How to run Personal Life OS locally and check that it works. For architecture an
 # Database (SQL Server in Docker)
 docker start sqlserver
 
-# One-time: create PersonalLifeOS.API/appsettings.Development.json
-# from appsettings.Development.example.json (connection string + JWT key)
+# Settings: PersonalLifeOS.API/appsettings.Development.json (connection string + JWT key)
 
 # Apply migrations
 cd PersonalLifeOS.Infrastructure
@@ -43,16 +42,19 @@ cd frontend && npm run lint && npm run build
 - [ ] Theme and language toggles work on the login and register pages
 
 ### Tasks, bills, journal, transactions
-- [ ] Create, edit and delete an item on each page; a toast confirms each action
-- [ ] Complete/uncomplete a task and pay/unpay a bill
+- [ ] "Add" opens the new page (`/tasks/new`…); saving returns to the list with a toast
+- [ ] The eye icon opens the details page; the "i" icon shows a hover preview
+- [ ] On a details page: edit and save; change status from the status dropdown (complete/reopen a task, pay/unpay a bill)
+- [ ] Delete sits beside Cancel/Save, asks for confirmation, then returns to the list
+- [ ] Cancel after editing asks "Entered data will not be saved…"; Cancel with no edits leaves immediately
+- [ ] Empty required fields show inline errors; negative or zero amounts are rejected
 - [ ] A bill due today shows as Pending, not Overdue
-- [ ] Negative or zero amounts are rejected
-- [ ] Search, date range and status filters narrow the list; pagination follows the filtered list
+- [ ] The filter tab opens the side panel in sync; Search applies, Clear resets; pagination follows the filtered list
 
 ### Receipts
 - [ ] Upload a JPG/PNG/WEBP/GIF receipt (max 10 MB); the thumbnail and preview load
 - [ ] Uploading a non-image file shows "Only JPG, PNG, WEBP and GIF images are allowed"
-- [ ] Replacing the image keeps the receipt; deleting the receipt removes the image file from `PersonalLifeOS.API/App_Data/receipts`
+- [ ] "Change Image" on the details page keeps the receipt; deleting the receipt removes the image file from `PersonalLifeOS.API/App_Data/receipts`
 - [ ] The header total matches the filtered list
 
 ### Dashboard
@@ -61,7 +63,8 @@ cd frontend && npm run lint && npm run build
 - [ ] The progress ring shows completed (green) and overdue (red) as separate segments
 
 ### Look and feel
-- [ ] Light mode: white page, white cards with gray outlines; dark mode: charcoal page and panels
+- [ ] Light mode: white page, blue brand, pale-blue table headers; dark mode: navy page and panels
+- [ ] Brand palettes in Profile recolor the whole app
 - [ ] No flash of the wrong theme on reload
 - [ ] Arabic switches the layout to RTL, including the sidebar, alerts and toasts
 
