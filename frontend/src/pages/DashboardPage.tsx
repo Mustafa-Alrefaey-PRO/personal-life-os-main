@@ -1,242 +1,185 @@
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
-} from 'recharts';
+import { Link } from 'react-router-dom';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid } from 'recharts';
 import { dashboardService } from '../services/dashboard.service';
 import { CATEGORY_I18N_KEYS } from '../utils/categoryLabel';
-import { formatDate, formatDateLong } from '../utils/formatDate';
+import { formatDate } from '../utils/formatDate';
+import { formatMoney } from '../utils/formatMoney';
+import { Status } from '../types/status';
 import { MainLayout } from '../components/layout/MainLayout';
 import { PageLoader } from '../components/ui/Spinner';
+import { PageHeader } from '../components/ui/PageHeader';
+import { Card } from '../components/ui/Card';
+import { StatBox } from '../components/ui/StatBox';
+import { Badge } from '../components/ui/Badge';
+import { Button } from '../components/ui/Button';
+import { EmptyState } from '../components/ui/EmptyState';
+import { DataTable, Th, Tr, Td } from '../components/ui/DataTable';
+import { TodayFocus } from '../components/dashboard/TodayFocus';
 
-function StatCard({ label, value, color }: { label: string; value: string | number; color: string }) {
+// Recharts draws SVG attributes, so it gets the palette variables rather than Tailwind classes
+const chartColor = { income: 'var(--c-primary)', expense: 'var(--c-line-strong)', net: 'var(--c-primary-dark)', alert: 'var(--c-danger)', muted: 'var(--c-muted)', line: 'var(--c-line)' };
+
+function ProgressRing({ total, completed, overdue, label }: { total: number; completed: number; overdue: number; label: string }) {
+  const r = 52;
+  const circ = 2 * Math.PI * r;
+  const pct = total > 0 ? completed / total : 0;
+  const doneDash = pct * circ;
+  const overdueDash = total > 0 ? (overdue / total) * circ : 0;
+
   return (
-    <div className="card rounded-xl p-5" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
-      <p className="text-xs font-medium uppercase tracking-wide mb-2" style={{ color: 'var(--text-muted)' }}>{label}</p>
-      <p className="text-3xl font-bold" style={{ color }}>{value}</p>
-    </div>
+    <svg width="136" height="136" viewBox="0 0 128 128" className="shrink-0">
+      <g transform="rotate(-90 64 64)">
+        <circle cx="64" cy="64" r={r} fill="none" strokeWidth="14" className="stroke-band" />
+        {/* Overdue starts where completed ends, so the segments never overlap */}
+        {overdue > 0 && (
+          <circle cx="64" cy="64" r={r} fill="none" strokeWidth="14" className="stroke-danger"
+            strokeDasharray={`${overdueDash} ${circ}`} strokeDashoffset={-doneDash} />
+        )}
+        <circle cx="64" cy="64" r={r} fill="none" strokeWidth="14" className="stroke-primary transition-[stroke-dasharray] duration-500"
+          strokeDasharray={`${doneDash} ${circ}`} />
+      </g>
+      <text x="64" y="62" textAnchor="middle" className="fill-heading text-[22px] font-bold">{Math.round(pct * 100)}%</text>
+      <text x="64" y="80" textAnchor="middle" className="fill-muted text-[10px]">{label}</text>
+    </svg>
   );
 }
 
 export default function DashboardPage() {
-  const { t, i18n } = useTranslation();
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? t('dashboard.goodMorning') : hour < 18 ? t('dashboard.goodAfternoon') : t('dashboard.goodEvening');
-  const todayLabel = formatDateLong(new Date(), i18n.language);
+  const { t } = useTranslation();
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['dashboard'],
     queryFn: () => dashboardService.getDashboard(),
     staleTime: 30_000,
-    refetchOnWindowFocus: true,
   });
 
   if (isLoading) return <MainLayout><PageLoader message={t('dashboard.loading')} /></MainLayout>;
 
   if (error) return (
     <MainLayout>
-      <div className="flex flex-col items-center justify-center py-24 gap-4">
-        <p className="font-medium" style={{ color: 'var(--text-primary)' }}>{t('dashboard.error')}</p>
-        <button
-          onClick={() => refetch()}
-          className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
-          style={{ background: 'var(--accent)' }}
-        >
-          {t('common.retry')}
-        </button>
-      </div>
+      <Card>
+        <EmptyState icon="alert" title={t('dashboard.error')} hint={t('common.error')}
+          action={<Button onClick={() => refetch()}>{t('common.retry')}</Button>} />
+      </Card>
     </MainLayout>
   );
 
   const d = data?.data;
+  const net = d?.netBalance ?? 0;
+  // Only a negative balance gets color
+  const netColor = net >= 0 ? chartColor.net : chartColor.alert;
 
   return (
     <MainLayout>
-      <div className="card rounded-xl px-6 py-4 mb-6"
-        style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
-        <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{greeting} 👋</h2>
-        <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>{todayLabel}</p>
+      <PageHeader icon="dashboard" title={t('nav.dashboard')} />
+
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatBox label={t('dashboard.totalTasks')} value={d?.totalTasks ?? 0} icon="tasks" />
+        <StatBox label={t('dashboard.completed')} value={d?.completedTasks ?? 0} icon="check" />
+        <StatBox label={t('dashboard.pending')} value={d?.pendingTasks ?? 0} icon="clock" />
+        <StatBox label={t('dashboard.overdue')} value={d?.overdueTasks ?? 0} icon="alert" alert={(d?.overdueTasks ?? 0) > 0} />
       </div>
 
-      {/* Task stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatCard label={t('dashboard.totalTasks')}  value={d?.totalTasks ?? 0}    color="var(--text-primary)" />
-        <StatCard label={t('dashboard.completed')}    value={d?.completedTasks ?? 0} color="var(--success)" />
-        <StatCard label={t('dashboard.pending')}      value={d?.pendingTasks ?? 0}  color="var(--warning)" />
-        <StatCard label={t('dashboard.overdue')}      value={d?.overdueTasks ?? 0}  color="var(--danger)" />
+      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <StatBox label={t('dashboard.totalIncome')} value={formatMoney(d?.totalIncome ?? 0)} icon="arrowUp" />
+        <StatBox label={t('dashboard.totalExpenses')} value={formatMoney(d?.totalExpenses ?? 0)} icon="arrowDown" />
+        <StatBox label={t('dashboard.netBalance')} value={formatMoney(net)} icon="wallet" alert={net < 0} />
       </div>
 
-      {/* Financial stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <StatCard label={t('dashboard.totalIncome')}   value={`EGP ${(d?.totalIncome ?? 0).toFixed(2)}`}   color="var(--success)" />
-        <StatCard label={t('dashboard.totalExpenses')} value={`EGP ${(d?.totalExpenses ?? 0).toFixed(2)}`} color="var(--danger)" />
-        <StatCard
-          label={t('dashboard.netBalance')}
-          value={`EGP ${(d?.netBalance ?? 0).toFixed(2)}`}
-          color={(d?.netBalance ?? 0) >= 0 ? 'var(--success)' : 'var(--danger)'}
-        />
-      </div>
+      <div className="mb-6"><TodayFocus nextBill={d?.upcomingBills?.[0]} /></div>
 
-      {/* Charts row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Income vs Expenses bar chart */}
-        <div className="card rounded-xl p-5" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
-          <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
-            {t('dashboard.financialOverview')}
-          </h3>
-          <ResponsiveContainer width="100%" height={180}>
+      <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-5">
+        <Card title={t('dashboard.financialOverview')} className="lg:col-span-3">
+          <ResponsiveContainer width="100%" height={220}>
             <BarChart
               data={[
-                { name: t('dashboard.totalIncome'),   value: d?.totalIncome ?? 0,   key: 'income' },
-                { name: t('dashboard.totalExpenses'), value: d?.totalExpenses ?? 0, key: 'expense' },
-                { name: t('dashboard.netBalance'),    value: Math.abs(d?.netBalance ?? 0), key: 'net' },
+                { name: t('dashboard.totalIncome'), value: d?.totalIncome ?? 0, color: chartColor.income },
+                { name: t('dashboard.totalExpenses'), value: d?.totalExpenses ?? 0, color: chartColor.expense },
+                { name: t('dashboard.netBalance'), value: Math.abs(net), color: netColor },
               ]}
-              margin={{ top: 4, right: 8, left: -16, bottom: 0 }}
+              margin={{ top: 8, right: 8, left: -12, bottom: 0 }}
             >
-              <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false}
-                tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(1)}k` : String(v)} />
+              <CartesianGrid vertical={false} stroke={chartColor.line} />
+              <XAxis dataKey="name" tick={{ fontSize: 12, fill: chartColor.muted }} axisLine={{ stroke: chartColor.line }} tickLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: chartColor.muted }} axisLine={false} tickLine={false}
+                tickFormatter={(v) => (v >= 1000 ? `${(v / 1000).toFixed(1)}k` : String(v))} />
               <Tooltip
-                cursor={{ fill: 'var(--bg-subtle)', radius: 6 }}
-                contentStyle={{ background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: 8, fontSize: 12, color: 'var(--text-primary)' }}
-                formatter={(v: number) => [`EGP ${v.toFixed(2)}`, '']}
+                cursor={{ fill: 'var(--c-hover)' }}
+                contentStyle={{ background: 'var(--c-surface)', border: '1px solid var(--c-line)', borderRadius: 6, fontSize: 12, color: 'var(--c-heading)' }}
+                formatter={(v) => [formatMoney(Number(v)), '']}
               />
-              <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={52}>
-                {[
-                  { key: 'income',  color: 'var(--success)' },
-                  { key: 'expense', color: 'var(--danger)' },
-                  { key: 'net',     color: (d?.netBalance ?? 0) >= 0 ? 'var(--success)' : 'var(--danger)' },
-                ].map((entry, i) => (
-                  <Cell key={i} fill={entry.color} fillOpacity={0.85} />
-                ))}
+              <Bar dataKey="value" maxBarSize={56}>
+                {[chartColor.income, chartColor.expense, netColor].map((fill, i) => <Cell key={i} fill={fill} />)}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </Card>
 
-        {/* Task progress ring */}
-        <div className="card rounded-xl p-5" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
-          <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
-            {t('dashboard.taskProgress')}
-          </h3>
-          <div className="flex items-center gap-6">
-            {/* SVG ring */}
-            {(() => {
-              const total = d?.totalTasks ?? 0;
-              const done  = d?.completedTasks ?? 0;
-              const pct   = total > 0 ? done / total : 0;
-              const r = 52, cx = 64, cy = 64;
-              const circ = 2 * Math.PI * r;
-              const dash = pct * circ;
-              return (
-                <svg width="128" height="128" viewBox="0 0 128 128" className="shrink-0">
-                  {/* Track */}
-                  <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--bg-subtle)" strokeWidth="14" />
-                  {/* Overdue arc */}
-                  {(d?.overdueTasks ?? 0) > 0 && (
-                    <circle cx={cx} cy={cy} r={r} fill="none"
-                      stroke="var(--danger)" strokeWidth="14" strokeOpacity="0.5"
-                      strokeDasharray={`${((d!.overdueTasks / total) * circ).toFixed(1)} ${circ}`}
-                      strokeDashoffset="0"
-                      transform={`rotate(-90 ${cx} ${cy})`}
-                    />
-                  )}
-                  {/* Completed arc */}
-                  <circle cx={cx} cy={cy} r={r} fill="none"
-                    stroke="var(--success)" strokeWidth="14"
-                    strokeDasharray={`${dash.toFixed(1)} ${circ}`}
-                    strokeDashoffset="0"
-                    strokeLinecap="round"
-                    transform={`rotate(-90 ${cx} ${cy})`}
-                    style={{ transition: 'stroke-dasharray 0.6s ease' }}
-                  />
-                  {/* Center text */}
-                  <text x={cx} y={cy - 6} textAnchor="middle" fontSize="22" fontWeight="700" fill="var(--text-primary)">
-                    {Math.round(pct * 100)}%
-                  </text>
-                  <text x={cx} y={cy + 14} textAnchor="middle" fontSize="10" fill="var(--text-muted)">
-                    {t('dashboard.completed')}
-                  </text>
-                </svg>
-              );
-            })()}
-            {/* Legend */}
-            <div className="space-y-3 flex-1">
+        <Card title={t('dashboard.taskProgress')} className="lg:col-span-2">
+          <div className="flex flex-wrap items-center gap-6">
+            <ProgressRing total={d?.totalTasks ?? 0} completed={d?.completedTasks ?? 0} overdue={d?.overdueTasks ?? 0} label={t('dashboard.completed')} />
+            <dl className="min-w-40 flex-1 divide-y divide-line rounded-md border border-line">
               {[
-                { label: t('dashboard.completed'), value: d?.completedTasks ?? 0, color: 'var(--success)' },
-                { label: t('dashboard.pending'),   value: d?.pendingTasks ?? 0,  color: 'var(--warning)' },
-                { label: t('dashboard.overdue'),   value: d?.overdueTasks ?? 0,  color: 'var(--danger)'  },
-              ].map(({ label, value, color }) => (
-                <div key={label} className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
-                    <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{label}</span>
-                  </div>
-                  <span className="text-sm font-bold" style={{ color }}>{value}</span>
+                { label: t('dashboard.completed'), value: d?.completedTasks ?? 0, dot: 'bg-primary' },
+                { label: t('dashboard.pending'), value: d?.pendingTasks ?? 0, dot: 'bg-line-strong' },
+                { label: t('dashboard.overdue'), value: d?.overdueTasks ?? 0, dot: 'bg-danger' },
+                { label: t('dashboard.totalTasks'), value: d?.totalTasks ?? 0, dot: 'bg-primary-dark' },
+              ].map(({ label, value, dot }) => (
+                <div key={label} className="flex items-center justify-between px-3 py-2">
+                  <dt className="flex items-center gap-2 text-[13px] text-body"><span className={`size-2.5 rounded-sm ${dot}`} />{label}</dt>
+                  <dd className="text-[13px] font-bold text-heading">{value}</dd>
                 </div>
               ))}
-              <div className="pt-1 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
-                <div className="flex justify-between">
-                  <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>{t('dashboard.totalTasks')}</span>
-                  <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>{d?.totalTasks ?? 0}</span>
-                </div>
-              </div>
-            </div>
+            </dl>
           </div>
-        </div>
+        </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Tasks */}
-        <div className="card rounded-xl p-5" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
-          <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>{t('dashboard.recentTasks')}</h3>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Card title={t('dashboard.recentTasks')} padded={false}
+          actions={<Link to="/tasks" className="text-sm font-semibold text-primary hover:underline">{t('dashboard.viewAll')}</Link>}>
           {d?.recentTasks?.length ? (
-            <div className="space-y-3">
-              {d.recentTasks.map((task) => (
-                <div key={task.id} className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{task.title}</p>
-                    {task.category && <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{t(CATEGORY_I18N_KEYS[task.category] ?? task.category)}</p>}
-                  </div>
-                  <span
-                    className="text-xs px-2 py-0.5 rounded-full font-medium shrink-0"
-                    style={{
-                      background: task.statusCode === 'COMPLETED' ? 'var(--success-bg)' : 'var(--accent-light)',
-                      color:      task.statusCode === 'COMPLETED' ? 'var(--success)'    : 'var(--accent)',
-                    }}
-                  >
-                    {task.statusCode === 'COMPLETED' ? t('tasks.filterCompleted') : t('tasks.filterPending')}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <DataTable>
+              <thead><tr><Th>{t('tasks.taskTitle')}</Th><Th>{t('tasks.category')}</Th><Th className="text-end">{t('common.status')}</Th></tr></thead>
+              <tbody>
+                {d.recentTasks.map((task) => (
+                  <Tr key={task.id}>
+                    <Td>{task.title}</Td>
+                    <Td className="text-muted">{task.category ? t(CATEGORY_I18N_KEYS[task.category] ?? task.category) : '—'}</Td>
+                    <Td className="text-end">
+                      {task.statusCode === Status.Completed
+                        ? <Badge tone="info">{t('tasks.filterCompleted')}</Badge>
+                        : <Badge tone="neutral">{t('tasks.filterPending')}</Badge>}
+                    </Td>
+                  </Tr>
+                ))}
+              </tbody>
+            </DataTable>
           ) : (
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{t('dashboard.noRecentTasks')}</p>
+            <EmptyState icon="tasks" title={t('dashboard.noRecentTasks')} hint={t('tasks.noTasksHint')} />
           )}
-        </div>
+        </Card>
 
-        {/* Upcoming Bills */}
-        <div className="card rounded-xl p-5" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
-          <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>{t('dashboard.upcomingBills')}</h3>
+        <Card title={t('dashboard.upcomingBills')} padded={false}
+          actions={<Link to="/bills" className="text-sm font-semibold text-primary hover:underline">{t('dashboard.viewAll')}</Link>}>
           {d?.upcomingBills?.length ? (
-            <div className="space-y-3">
-              {d.upcomingBills.map((bill) => (
-                <div key={bill.id} className="flex items-center justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{bill.name}</p>
-                    <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                      {t('common.due')}: {formatDate(bill.dueDate)}
-                    </p>
-                  </div>
-                  <span className="text-sm font-bold shrink-0" style={{ color: 'var(--danger)' }}>
-                    EGP {bill.amount.toFixed(2)}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <DataTable>
+              <thead><tr><Th>{t('bills.name')}</Th><Th>{t('bills.dueDate')}</Th><Th className="text-end">{t('bills.amount')}</Th></tr></thead>
+              <tbody>
+                {d.upcomingBills.map((bill) => (
+                  <Tr key={bill.id}>
+                    <Td>{bill.name}</Td>
+                    <Td className="text-muted">{formatDate(bill.dueDate)}</Td>
+                    <Td className="text-end font-bold text-title">{formatMoney(bill.amount)}</Td>
+                  </Tr>
+                ))}
+              </tbody>
+            </DataTable>
           ) : (
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{t('dashboard.noUpcomingBills')}</p>
+            <EmptyState icon="bills" title={t('dashboard.noUpcomingBills')} hint={t('bills.noBillsHint')} />
           )}
-        </div>
+        </Card>
       </div>
     </MainLayout>
   );
