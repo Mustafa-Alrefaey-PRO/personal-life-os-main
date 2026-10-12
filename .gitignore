@@ -17,8 +17,7 @@ client_secret_*.json
 PersonalLifeOS.API/personallifeos-*.json
 PersonalLifeOS.API/client_secret_*.json
 
-# Sensitive config (keep appsettings.json template, ignore environment-specific overrides)
-appsettings.Development.json
+# Sensitive config: production settings stay local (appsettings.Development.json is tracked in this private repo)
 appsettings.Production.json
 **/secrets.json
 
@@ -46,3 +45,9 @@ desktop.ini
 *.backup
 *.old
 *.lscache
+
+# Locally stored receipt images
+**/App_Data/
+
+# Local credentials for design research (never commit)
+.*-creds
