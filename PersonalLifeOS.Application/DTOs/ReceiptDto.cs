@@ -9,7 +9,7 @@ public class ReceiptDto
     public decimal Amount { get; set; }
     public DateTime Date { get; set; }
     public string? Category { get; set; }
-    public string ImagePath { get; set; } = string.Empty;
+    public bool HasImage { get; set; }
     public string StatusCode { get; set; } = string.Empty;
     public DateTime CreatedDate { get; set; }
 }
@@ -20,7 +20,7 @@ public class CreateReceiptDto
     [MaxLength(200)]
     public string Title { get; set; } = string.Empty;
 
-    [Required]
+    [Range(typeof(decimal), ValidationLimits.MinAmount, ValidationLimits.MaxAmount)]
     public decimal Amount { get; set; }
 
     [Required]
@@ -30,20 +30,7 @@ public class CreateReceiptDto
     public string? Category { get; set; }
 }
 
-public class UpdateReceiptDto
+public class UpdateReceiptDto : CreateReceiptDto
 {
     public int Id { get; set; }
-
-    [Required]
-    [MaxLength(200)]
-    public string Title { get; set; } = string.Empty;
-
-    [Required]
-    public decimal Amount { get; set; }
-
-    [Required]
-    public DateTime Date { get; set; }
-
-    [MaxLength(50)]
-    public string? Category { get; set; }
 }

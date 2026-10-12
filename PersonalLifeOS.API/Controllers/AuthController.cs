@@ -1,11 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 using PersonalLifeOS.Application.DTOs;
 using PersonalLifeOS.Infrastructure.Identity;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
 namespace PersonalLifeOS.API.Controllers;
 
@@ -15,16 +11,16 @@ public class AuthController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
-    private readonly IConfiguration _configuration;
+    private readonly JwtTokenService _tokenService;
 
     public AuthController(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
-        IConfiguration configuration)
+        JwtTokenService tokenService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
-        _configuration = configuration;
+        _tokenService = tokenService;
     }
 
     /// <summary>
@@ -33,54 +29,32 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Register([FromBody] RegisterDto dto)
     {
-        if (!ModelState.IsValid)
+        if (await _userManager.FindByEmailAsync(dto.Email) != null)
         {
-            var errors = ModelState.Values
-                .SelectMany(v => v.Errors)
-                .Select(e => e.ErrorMessage)
-                .ToList();
-            return BadRequest(ApiResponse<AuthResponseDto>.ErrorResponse("Validation failed", errors));
-        }
-
-        // Check if user already exists
-        var existingUser = await _userManager.FindByEmailAsync(dto.Email);
-        if (existingUser != null)
-        {
-            return BadRequest(ApiResponse<AuthResponseDto>.ErrorResponse(
+            return Conflict(ApiResponse<AuthResponseDto>.ErrorResponse(
                 "User already exists",
                 new List<string> { "An account with this email already exists" }
             ));
         }
 
-        // Create new user
         var user = new ApplicationUser
         {
             UserName = dto.Email,
             Email = dto.Email,
             FullName = dto.FullName,
-            EmailConfirmed = true // Auto-confirm for development
+            CreatedBy = dto.Email,
+            CreatedDate = DateTime.UtcNow,
+            EmailConfirmed = true // No email verification flow yet
         };
 
         var result = await _userManager.CreateAsync(user, dto.Password);
-
         if (!result.Succeeded)
         {
             var errors = result.Errors.Select(e => e.Description).ToList();
             return BadRequest(ApiResponse<AuthResponseDto>.ErrorResponse("Registration failed", errors));
         }
 
-        // Generate JWT token
-        var token = GenerateJwtToken(user);
-
-        var response = new AuthResponseDto
-        {
-            Token = token,
-            Email = user.Email!,
-            FullName = user.FullName,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(GetJwtExpiryMinutes())
-        };
-
-        return Ok(ApiResponse<AuthResponseDto>.SuccessResponse(response, "Registration successful"));
+        return Ok(ApiResponse<AuthResponseDto>.SuccessResponse(CreateAuthResponse(user), "Registration successful"));
     }
 
     /// <summary>
@@ -89,87 +63,38 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Login([FromBody] LoginDto dto)
     {
-        if (!ModelState.IsValid)
-        {
-            var errors = ModelState.Values
-                .SelectMany(v => v.Errors)
-                .Select(e => e.ErrorMessage)
-                .ToList();
-            return BadRequest(ApiResponse<AuthResponseDto>.ErrorResponse("Validation failed", errors));
-        }
-
-        // Find user by email
         var user = await _userManager.FindByEmailAsync(dto.Email);
-        if (user == null)
+        if (user == null) return InvalidCredentials();
+
+        // lockoutOnFailure: repeated wrong passwords lock the account (limits set in Program.cs)
+        var result = await _signInManager.CheckPasswordSignInAsync(user, dto.Password, lockoutOnFailure: true);
+        if (result.IsLockedOut)
         {
-            return Unauthorized(ApiResponse<AuthResponseDto>.ErrorResponse(
-                "Invalid credentials",
-                new List<string> { "Email or password is incorrect" }
+            return StatusCode(StatusCodes.Status423Locked, ApiResponse<AuthResponseDto>.ErrorResponse(
+                "Account locked",
+                new List<string> { "Too many failed attempts. Try again in a few minutes." }
             ));
         }
+        if (!result.Succeeded) return InvalidCredentials();
 
-        // Check password
-        var result = await _signInManager.CheckPasswordSignInAsync(user, dto.Password, false);
-        if (!result.Succeeded)
+        return Ok(ApiResponse<AuthResponseDto>.SuccessResponse(CreateAuthResponse(user), "Login successful"));
+    }
+
+    private AuthResponseDto CreateAuthResponse(ApplicationUser user)
+    {
+        var token = _tokenService.CreateToken(user);
+        return new AuthResponseDto
         {
-            return Unauthorized(ApiResponse<AuthResponseDto>.ErrorResponse(
-                "Invalid credentials",
-                new List<string> { "Email or password is incorrect" }
-            ));
-        }
-
-        // Generate JWT token
-        var token = GenerateJwtToken(user);
-
-        var response = new AuthResponseDto
-        {
-            Token = token,
+            Token = token.Token,
             Email = user.Email!,
-            FullName = user.FullName,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(GetJwtExpiryMinutes())
+            FullName = user.FullName ?? string.Empty,
+            ExpiresAt = token.ExpiresAt
         };
-
-        return Ok(ApiResponse<AuthResponseDto>.SuccessResponse(response, "Login successful"));
     }
 
-    #region Private Helper Methods
-
-    private string GenerateJwtToken(ApplicationUser user)
-    {
-        var jwtSettings = _configuration.GetSection("JwtSettings");
-        var secretKey = jwtSettings["SecretKey"] ?? "YourSuperSecretKeyForDevelopment12345678";
-        var issuer = jwtSettings["Issuer"] ?? "PersonalLifeOSAPI";
-        var audience = jwtSettings["Audience"] ?? "PersonalLifeOSClient";
-
-        var claims = new[]
-        {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-            new Claim(ClaimTypes.NameIdentifier, user.Id),  // explicitly set for GetCurrentUserId()
-            new Claim(JwtRegisteredClaimNames.Email, user.Email!),
-            new Claim(ClaimTypes.Email, user.Email!),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim("FullName", user.FullName ?? string.Empty)
-        };
-
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var token = new JwtSecurityToken(
-            issuer: issuer,
-            audience: audience,
-            claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(GetJwtExpiryMinutes()),
-            signingCredentials: credentials
-        );
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
-    }
-
-    private int GetJwtExpiryMinutes()
-    {
-        var expiryMinutes = _configuration.GetSection("JwtSettings")["ExpiryInMinutes"];
-        return int.TryParse(expiryMinutes, out var minutes) ? minutes : 60;
-    }
-
-    #endregion
+    private UnauthorizedObjectResult InvalidCredentials() =>
+        Unauthorized(ApiResponse<AuthResponseDto>.ErrorResponse(
+            "Invalid credentials",
+            new List<string> { "Email or password is incorrect" }
+        ));
 }

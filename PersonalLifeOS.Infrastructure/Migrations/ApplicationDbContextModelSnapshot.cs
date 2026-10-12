@@ -17,7 +17,7 @@ namespace PersonalLifeOS.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.3")
+                .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -393,7 +393,8 @@ namespace PersonalLifeOS.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Priority")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("StatusCode")
                         .IsRequired()

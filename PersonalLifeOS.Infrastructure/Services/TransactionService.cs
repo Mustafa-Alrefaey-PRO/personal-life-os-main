@@ -20,14 +20,8 @@ public class TransactionService
         return transactions.Select(MapToDto).ToList();
     }
 
-    public async Task<TransactionDto> GetTransactionByIdAsync(int id, string userId)
-    {
-        var transaction = await _repository.GetByIdAsync(id)
-            ?? throw new KeyNotFoundException($"Transaction with ID {id} does not exist");
-        if (transaction.UserId != userId)
-            throw new UnauthorizedAccessException();
-        return MapToDto(transaction);
-    }
+    public async Task<TransactionDto> GetTransactionByIdAsync(int id, string userId) =>
+        MapToDto(await GetOwnedAsync(id, userId));
 
     public async Task<TransactionDto> CreateTransactionAsync(CreateTransactionDto dto, string userId)
     {
@@ -48,29 +42,21 @@ public class TransactionService
 
     public async Task UpdateTransactionAsync(UpdateTransactionDto dto, string userId)
     {
-        var transaction = await _repository.GetByIdAsync(dto.Id)
-            ?? throw new KeyNotFoundException($"Transaction with ID {dto.Id} does not exist");
-        if (transaction.UserId != userId)
-            throw new UnauthorizedAccessException();
-
+        var transaction = await GetOwnedAsync(dto.Id, userId);
         transaction.Amount = dto.Amount;
         transaction.Type = dto.Type;
         transaction.Category = dto.Category;
         transaction.Date = dto.Date;
         transaction.Notes = dto.Notes;
-        transaction.UpdatedBy = userId;
-        await _repository.UpdateAsync(transaction);
+        await _repository.UpdateAsync(transaction, userId);
     }
 
-    public async Task DeleteTransactionAsync(int id, string userId)
-    {
-        var transaction = await _repository.GetByIdAsync(id)
+    public async Task DeleteTransactionAsync(int id, string userId) =>
+        await _repository.SoftDeleteAsync(await GetOwnedAsync(id, userId), userId);
+
+    private async Task<Transaction> GetOwnedAsync(int id, string userId) =>
+        await _repository.GetByIdAsync(id, userId)
             ?? throw new KeyNotFoundException($"Transaction with ID {id} does not exist");
-        if (transaction.UserId != userId)
-            throw new UnauthorizedAccessException();
-
-        await _repository.DeleteAsync(id, userId);
-    }
 
     internal static TransactionDto MapToDto(Transaction t) => new()
     {

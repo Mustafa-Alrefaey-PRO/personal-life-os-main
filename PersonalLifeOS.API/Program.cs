@@ -1,25 +1,18 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using PersonalLifeOS.API.ErrorHandling;
+using PersonalLifeOS.Application.DTOs;
+using PersonalLifeOS.Infrastructure.FileStorage;
 using PersonalLifeOS.Infrastructure.Identity;
 using PersonalLifeOS.Infrastructure.Persistence;
-using System.Text;
+using PersonalLifeOS.Infrastructure.Repositories;
+using PersonalLifeOS.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Configure Kestrel request body size for file uploads (50 MB)
-builder.WebHost.ConfigureKestrel(options =>
-{
-    options.Limits.MaxRequestBodySize = 50 * 1024 * 1024;
-});
-
-// Configure form options for multipart uploads
-builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
-{
-    options.MultipartBodyLengthLimit = 50 * 1024 * 1024;
-});
 
 // Add services to the container
 builder.Services.AddControllers()
@@ -27,11 +20,30 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.Converters.Add(
             new System.Text.Json.Serialization.JsonStringEnumConverter());
+    })
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        // Return model validation failures in the same ApiResponse shape as every other endpoint
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var errors = context.ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => string.IsNullOrEmpty(e.ErrorMessage) ? "Invalid value" : e.ErrorMessage)
+                .ToList();
+            return new BadRequestObjectResult(ApiResponse<object>.ErrorResponse("Validation failed", errors));
+        };
     });
 
+builder.Services.AddExceptionHandler<ApiExceptionHandler>();
+builder.Services.AddProblemDetails();
+
 // Configure Database
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(connectionString))
+    throw new InvalidOperationException(
+        "ConnectionStrings:DefaultConnection is not set. Put it in appsettings.Development.json or user-secrets.");
+
+builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
 
 // Configure Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -41,13 +53,24 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireUppercase = false;
     options.Password.RequireLowercase = false;
+
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+    options.Lockout.AllowedForNewUsers = true;
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
 // Configure JWT Authentication
-var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var secretKey = jwtSettings["SecretKey"] ?? "YourSuperSecretKeyForDevelopment12345678"; // Fallback for development
+var jwtSection = builder.Configuration.GetSection(JwtSettings.SectionName);
+var jwtSettings = jwtSection.Get<JwtSettings>() ?? new JwtSettings();
+if (jwtSettings.SecretKey.Length < JwtSettings.MinSecretKeyLength)
+    throw new InvalidOperationException(
+        $"JwtSettings:SecretKey must be at least {JwtSettings.MinSecretKeyLength} characters. " +
+        "Put it in appsettings.Development.json or user-secrets, never in appsettings.json.");
+
+builder.Services.Configure<JwtSettings>(jwtSection);
+builder.Services.AddSingleton<JwtTokenService>();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -62,49 +85,53 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtSettings["Issuer"] ?? "PersonalLifeOSAPI",
-        ValidAudience = jwtSettings["Audience"] ?? "PersonalLifeOSClient",
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+        ValidIssuer = jwtSettings.Issuer,
+        ValidAudience = jwtSettings.Audience,
+        IssuerSigningKey = JwtTokenService.CreateSigningKey(jwtSettings),
         ClockSkew = TimeSpan.Zero
     };
 });
 
 // Register repositories
-builder.Services.AddScoped<PersonalLifeOS.Infrastructure.Repositories.TaskRepository>();
-builder.Services.AddScoped<PersonalLifeOS.Infrastructure.Repositories.JournalRepository>();
-builder.Services.AddScoped<PersonalLifeOS.Infrastructure.Repositories.ReceiptRepository>();
-builder.Services.AddScoped<PersonalLifeOS.Infrastructure.Repositories.BillRepository>();
-builder.Services.AddScoped<PersonalLifeOS.Infrastructure.Repositories.TransactionRepository>();
+builder.Services.AddScoped<TaskRepository>();
+builder.Services.AddScoped<JournalRepository>();
+builder.Services.AddScoped<ReceiptRepository>();
+builder.Services.AddScoped<BillRepository>();
+builder.Services.AddScoped<TransactionRepository>();
 
 // Register application services
-builder.Services.AddScoped<PersonalLifeOS.Infrastructure.Services.TaskService>();
-builder.Services.AddScoped<PersonalLifeOS.Infrastructure.Services.JournalService>();
-builder.Services.AddScoped<PersonalLifeOS.Infrastructure.Services.ReceiptService>();
-builder.Services.AddScoped<PersonalLifeOS.Infrastructure.Services.BillService>();
-builder.Services.AddScoped<PersonalLifeOS.Infrastructure.Services.TransactionService>();
-builder.Services.AddScoped<PersonalLifeOS.Infrastructure.Services.DashboardService>();
+builder.Services.AddScoped<TaskService>();
+builder.Services.AddScoped<JournalService>();
+builder.Services.AddScoped<ReceiptService>();
+builder.Services.AddScoped<BillService>();
+builder.Services.AddScoped<TransactionService>();
+builder.Services.AddScoped<DashboardService>();
 
-// Register Google Drive storage service
-var driveSettings = builder.Configuration.GetSection("GoogleDrive");
-builder.Services.AddSingleton(new PersonalLifeOS.Infrastructure.FileStorage.GoogleDriveStorageService(
-    driveSettings["ClientId"]!,
-    driveSettings["ClientSecret"]!,
-    driveSettings["RefreshToken"]!,
-    driveSettings["FolderId"]!
-));
+// Register receipt image storage: "Local" (default) or "GoogleDrive"
+var storageSection = builder.Configuration.GetSection("Storage");
+if (string.Equals(storageSection["Provider"], "GoogleDrive", StringComparison.OrdinalIgnoreCase))
+{
+    var drive = storageSection.GetSection("GoogleDrive");
+    builder.Services.AddSingleton<IFileStorage>(new GoogleDriveStorageService(
+        drive["ClientId"] ?? throw new InvalidOperationException("Storage:GoogleDrive:ClientId is not set."),
+        drive["ClientSecret"] ?? throw new InvalidOperationException("Storage:GoogleDrive:ClientSecret is not set."),
+        drive["RefreshToken"] ?? throw new InvalidOperationException("Storage:GoogleDrive:RefreshToken is not set."),
+        drive["FolderId"] ?? throw new InvalidOperationException("Storage:GoogleDrive:FolderId is not set.")));
+}
+else
+{
+    var localPath = Path.Combine(builder.Environment.ContentRootPath, storageSection["LocalPath"] ?? "App_Data/receipts");
+    builder.Services.AddSingleton<IFileStorage>(new LocalFileStorage(localPath));
+}
 
 // Configure CORS
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? ["http://localhost:5173"];
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins(
-                  "http://localhost:5173",
-                  "http://localhost:5174",
-                  "http://localhost:5175",
-                  "http://localhost:5176",
-                  "http://localhost:3000"
-              ) // Vite dev ports
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
@@ -151,6 +178,8 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
+app.UseExceptionHandler();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -160,9 +189,11 @@ if (app.Environment.IsDevelopment())
         c.RoutePrefix = string.Empty; // Swagger at root
     });
 }
-
-app.UseHttpsRedirection();
-app.UseStaticFiles();
+else
+{
+    // The dev "http" profile has no HTTPS port; only redirect outside development
+    app.UseHttpsRedirection();
+}
 
 app.UseCors("AllowReactApp");
 

@@ -6,7 +6,10 @@ using Google.Apis.Services;
 
 namespace PersonalLifeOS.Infrastructure.FileStorage;
 
-public class GoogleDriveStorageService
+/// <summary>
+/// Stores files in a private Google Drive folder. Files keep Drive's default (owner-only) sharing.
+/// </summary>
+public class GoogleDriveStorageService : IFileStorage
 {
     private readonly DriveService _driveService;
     private readonly string _folderId;
@@ -36,43 +39,53 @@ public class GoogleDriveStorageService
         });
     }
 
-    public async Task<string> SaveFileAsync(Stream fileStream, string fileName, string contentType)
+    public async Task<string> SaveAsync(Stream content, string fileName, string contentType)
     {
         var fileMetadata = new Google.Apis.Drive.v3.Data.File
         {
-            Name = $"{Guid.NewGuid()}_{fileName}",
+            Name = $"{Guid.NewGuid():N}{Path.GetExtension(fileName).ToLowerInvariant()}",
             Parents = [_folderId]
         };
 
-        var request = _driveService.Files.Create(fileMetadata, fileStream, contentType);
+        var request = _driveService.Files.Create(fileMetadata, content, contentType);
         request.Fields = "id";
         var progress = await request.UploadAsync();
 
         if (progress.Status != Google.Apis.Upload.UploadStatus.Completed)
-            throw new Exception($"Google Drive upload failed: {progress.Exception?.Message ?? "Unknown error"}");
+            throw new InvalidOperationException("Google Drive upload failed.", progress.Exception);
 
-        var file = request.ResponseBody;
-        if (file == null)
-            throw new Exception("Google Drive upload completed but returned no file metadata.");
-
-        // Make the file publicly readable so it can be displayed in the frontend
-        var permission = new Google.Apis.Drive.v3.Data.Permission
-        {
-            Type = "anyone",
-            Role = "reader"
-        };
-        await _driveService.Permissions.Create(permission, file.Id).ExecuteAsync();
-
-        return file.Id;
+        return request.ResponseBody?.Id
+            ?? throw new InvalidOperationException("Google Drive upload returned no file id.");
     }
 
-    public async Task DeleteFileAsync(string fileId)
+    public async Task<StoredFile?> OpenReadAsync(string fileId)
     {
-        if (string.IsNullOrEmpty(fileId)) return;
+        try
+        {
+            var metadataRequest = _driveService.Files.Get(fileId);
+            metadataRequest.Fields = "mimeType";
+            var metadata = await metadataRequest.ExecuteAsync();
+
+            var buffer = new MemoryStream();
+            await _driveService.Files.Get(fileId).DownloadAsync(buffer);
+            buffer.Position = 0;
+            return new StoredFile(buffer, metadata.MimeType ?? "application/octet-stream");
+        }
+        catch (Google.GoogleApiException ex) when (ex.HttpStatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task DeleteAsync(string fileId)
+    {
         try
         {
             await _driveService.Files.Delete(fileId).ExecuteAsync();
         }
-        catch { /* File may not exist on Drive */ }
+        catch (Google.GoogleApiException ex) when (ex.HttpStatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            // Already gone
+        }
     }
 }

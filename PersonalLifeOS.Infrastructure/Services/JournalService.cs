@@ -20,14 +20,8 @@ public class JournalService
         return journals.Select(MapToDto).ToList();
     }
 
-    public async Task<JournalDto> GetJournalByIdAsync(int id, string userId)
-    {
-        var journal = await _repository.GetByIdAsync(id)
-            ?? throw new KeyNotFoundException($"Journal entry with ID {id} does not exist");
-        if (journal.UserId != userId)
-            throw new UnauthorizedAccessException();
-        return MapToDto(journal);
-    }
+    public async Task<JournalDto> GetJournalByIdAsync(int id, string userId) =>
+        MapToDto(await GetOwnedAsync(id, userId));
 
     public async Task<JournalDto> CreateJournalAsync(CreateJournalDto dto, string userId)
     {
@@ -45,26 +39,18 @@ public class JournalService
 
     public async Task UpdateJournalAsync(UpdateJournalDto dto, string userId)
     {
-        var journal = await _repository.GetByIdAsync(dto.Id)
-            ?? throw new KeyNotFoundException($"Journal entry with ID {dto.Id} does not exist");
-        if (journal.UserId != userId)
-            throw new UnauthorizedAccessException();
-
+        var journal = await GetOwnedAsync(dto.Id, userId);
         journal.Date = dto.Date.Date;
         journal.Notes = dto.Notes;
-        journal.UpdatedBy = userId;
-        await _repository.UpdateAsync(journal);
+        await _repository.UpdateAsync(journal, userId);
     }
 
-    public async Task DeleteJournalAsync(int id, string userId)
-    {
-        var journal = await _repository.GetByIdAsync(id)
+    public async Task DeleteJournalAsync(int id, string userId) =>
+        await _repository.SoftDeleteAsync(await GetOwnedAsync(id, userId), userId);
+
+    private async Task<DailyJournal> GetOwnedAsync(int id, string userId) =>
+        await _repository.GetByIdAsync(id, userId)
             ?? throw new KeyNotFoundException($"Journal entry with ID {id} does not exist");
-        if (journal.UserId != userId)
-            throw new UnauthorizedAccessException();
-
-        await _repository.DeleteAsync(id, userId);
-    }
 
     internal static JournalDto MapToDto(DailyJournal j) => new()
     {

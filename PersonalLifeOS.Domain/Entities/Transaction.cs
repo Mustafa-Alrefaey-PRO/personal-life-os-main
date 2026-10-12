@@ -1,8 +1,9 @@
+using PersonalLifeOS.Domain.Common;
 using PersonalLifeOS.Domain.Enums;
 
 namespace PersonalLifeOS.Domain.Entities;
 
-public class Transaction
+public class Transaction : IUserOwnedEntity
 {
     public int Id { get; set; }
     public decimal Amount { get; set; }

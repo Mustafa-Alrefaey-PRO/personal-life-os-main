@@ -20,14 +20,8 @@ public class TaskService
         return tasks.Select(MapToDto).ToList();
     }
 
-    public async Task<TaskDto> GetTaskByIdAsync(int id, string userId)
-    {
-        var task = await _repository.GetByIdAsync(id)
-            ?? throw new KeyNotFoundException($"Task with ID {id} does not exist");
-        if (task.UserId != userId)
-            throw new UnauthorizedAccessException();
-        return MapToDto(task);
-    }
+    public async Task<TaskDto> GetTaskByIdAsync(int id, string userId) =>
+        MapToDto(await GetOwnedAsync(id, userId));
 
     public async Task<TaskDto> CreateTaskAsync(CreateTaskDto dto, string userId)
     {
@@ -37,7 +31,7 @@ public class TaskService
             Description = dto.Description,
             DueDate = dto.DueDate,
             Category = dto.Category,
-            Priority = dto.Priority,
+            Priority = NormalizePriority(dto.Priority),
             UserId = userId,
             CreatedBy = userId,
             StatusCode = GeneralStatuses.PENDING
@@ -48,54 +42,36 @@ public class TaskService
 
     public async Task UpdateTaskAsync(UpdateTaskDto dto, string userId)
     {
-        var task = await _repository.GetByIdAsync(dto.Id)
-            ?? throw new KeyNotFoundException($"Task with ID {dto.Id} does not exist");
-        if (task.UserId != userId)
-            throw new UnauthorizedAccessException();
-
+        var task = await GetOwnedAsync(dto.Id, userId);
         task.Title = dto.Title;
         task.Description = dto.Description;
         task.DueDate = dto.DueDate;
         task.Category = dto.Category;
-        task.Priority = dto.Priority;
-        task.StatusCode = dto.StatusCode;
-        task.UpdatedBy = userId;
-        await _repository.UpdateAsync(task);
+        task.Priority = NormalizePriority(dto.Priority);
+        await _repository.UpdateAsync(task, userId);
     }
 
-    public async Task CompleteTaskAsync(int id, string userId)
+    public Task CompleteTaskAsync(int id, string userId) => SetStatusAsync(id, userId, GeneralStatuses.COMPLETED);
+
+    public Task UncompleteTaskAsync(int id, string userId) => SetStatusAsync(id, userId, GeneralStatuses.PENDING);
+
+    public async Task DeleteTaskAsync(int id, string userId) =>
+        await _repository.SoftDeleteAsync(await GetOwnedAsync(id, userId), userId);
+
+    private async Task SetStatusAsync(int id, string userId, string statusCode)
     {
-        var task = await _repository.GetByIdAsync(id)
-            ?? throw new KeyNotFoundException($"Task with ID {id} does not exist");
-        if (task.UserId != userId)
-            throw new UnauthorizedAccessException();
-
-        task.StatusCode = GeneralStatuses.COMPLETED;
-        task.UpdatedBy = userId;
-        await _repository.UpdateAsync(task);
+        var task = await GetOwnedAsync(id, userId);
+        task.StatusCode = statusCode;
+        await _repository.UpdateAsync(task, userId);
     }
 
-    public async Task UncompleteTaskAsync(int id, string userId)
-    {
-        var task = await _repository.GetByIdAsync(id)
+    private async Task<TaskEntity> GetOwnedAsync(int id, string userId) =>
+        await _repository.GetByIdAsync(id, userId)
             ?? throw new KeyNotFoundException($"Task with ID {id} does not exist");
-        if (task.UserId != userId)
-            throw new UnauthorizedAccessException();
 
-        task.StatusCode = GeneralStatuses.PENDING;
-        task.UpdatedBy = userId;
-        await _repository.UpdateAsync(task);
-    }
-
-    public async Task DeleteTaskAsync(int id, string userId)
-    {
-        var task = await _repository.GetByIdAsync(id)
-            ?? throw new KeyNotFoundException($"Task with ID {id} does not exist");
-        if (task.UserId != userId)
-            throw new UnauthorizedAccessException();
-
-        await _repository.DeleteAsync(id, userId);
-    }
+    // The UI sends "" for "no priority"
+    private static string? NormalizePriority(string? priority) =>
+        string.IsNullOrWhiteSpace(priority) ? null : priority;
 
     internal static TaskDto MapToDto(TaskEntity t) => new()
     {

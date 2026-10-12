@@ -1,10 +1,11 @@
-﻿namespace PersonalLifeOS.Domain.Enums;
+namespace PersonalLifeOS.Domain.Enums;
 
-public record GeneralStatuses
+public static class GeneralStatuses
 {
     public const string PENDING = "PENDING";
     public const string COMPLETED = "COMPLETED";
-    public const string CANCLED = "CANCLED";
+    public const string PAID = "PAID";
+    public const string CANCELLED = "CANCELLED";
     public const string DELETED = "DELETED";
     public const string ACTIVE = "ACTIVE";
 }

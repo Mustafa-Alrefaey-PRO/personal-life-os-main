@@ -16,10 +16,12 @@ public class TransactionDto
 
 public class CreateTransactionDto
 {
-    [Required]
+    // Always positive; Type decides whether it is income or expense
+    [Range(typeof(decimal), ValidationLimits.MinAmount, ValidationLimits.MaxAmount)]
     public decimal Amount { get; set; }
 
     [Required]
+    [EnumDataType(typeof(TransactionType))]
     public TransactionType Type { get; set; }
 
     [MaxLength(50)]
@@ -32,22 +34,7 @@ public class CreateTransactionDto
     public string? Notes { get; set; }
 }
 
-public class UpdateTransactionDto
+public class UpdateTransactionDto : CreateTransactionDto
 {
     public int Id { get; set; }
-
-    [Required]
-    public decimal Amount { get; set; }
-
-    [Required]
-    public TransactionType Type { get; set; }
-
-    [MaxLength(50)]
-    public string? Category { get; set; }
-
-    [Required]
-    public DateTime Date { get; set; }
-
-    [MaxLength(500)]
-    public string? Notes { get; set; }
 }

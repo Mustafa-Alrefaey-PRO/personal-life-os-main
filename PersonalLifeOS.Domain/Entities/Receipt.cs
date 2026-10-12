@@ -1,8 +1,9 @@
+using PersonalLifeOS.Domain.Common;
 using PersonalLifeOS.Domain.Enums;
 
 namespace PersonalLifeOS.Domain.Entities;
 
-public class Receipt
+public class Receipt : IUserOwnedEntity
 {
     public int Id { get; set; }
     public string Title { get; set; } = string.Empty;

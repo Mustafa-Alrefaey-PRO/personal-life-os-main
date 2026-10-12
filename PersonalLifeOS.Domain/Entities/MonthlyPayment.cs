@@ -1,8 +1,9 @@
+using PersonalLifeOS.Domain.Common;
 using PersonalLifeOS.Domain.Enums;
 
 namespace PersonalLifeOS.Domain.Entities;
 
-public class MonthlyPayment
+public class MonthlyPayment : IUserOwnedEntity
 {
     public int Id { get; set; }
     public string Title { get; set; } = string.Empty;

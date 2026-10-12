@@ -35,12 +35,13 @@ public class DashboardService
         var journals     = await _journalService.GetAllJournalsAsync(userId);
         var receipts     = await _receiptService.GetAllReceiptsAsync(userId);
 
+        var today          = DateTime.Today;
         var completedTasks = tasks.Count(t => t.StatusCode == GeneralStatuses.COMPLETED);
         var pendingTasks   = tasks.Count(t => t.StatusCode == GeneralStatuses.PENDING);
         var overdueTasks   = tasks.Count(t =>
             t.StatusCode == GeneralStatuses.PENDING &&
             t.DueDate.HasValue &&
-            t.DueDate.Value.Date < DateTime.Now.Date);
+            t.DueDate.Value.Date < today);
 
         var totalIncome   = transactions.Where(t => t.Type == TransactionType.Income).Sum(t => t.Amount);
         var totalExpenses = transactions.Where(t => t.Type == TransactionType.Expense).Sum(t => t.Amount);
@@ -50,7 +51,7 @@ public class DashboardService
             .ToList();
 
         var upcomingBills = bills
-            .Where(b => b.StatusCode == GeneralStatuses.PENDING)
+            .Where(b => b.StatusCode == GeneralStatuses.PENDING && b.DueDate.Date >= today)
             .OrderBy(b => b.DueDate).Take(5)
             .ToList();
 

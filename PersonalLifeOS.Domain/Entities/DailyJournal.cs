@@ -1,8 +1,9 @@
+using PersonalLifeOS.Domain.Common;
 using PersonalLifeOS.Domain.Enums;
 
 namespace PersonalLifeOS.Domain.Entities;
 
-public class DailyJournal
+public class DailyJournal : IUserOwnedEntity
 {
     public int Id { get; set; }
     public DateTime Date { get; set; }

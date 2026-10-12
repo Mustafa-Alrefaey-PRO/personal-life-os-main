@@ -1,8 +1,9 @@
+using PersonalLifeOS.Domain.Common;
 using PersonalLifeOS.Domain.Enums;
 
 namespace PersonalLifeOS.Domain.Entities;
 
-public class TaskEntity
+public class TaskEntity : IUserOwnedEntity
 {
     public int Id { get; set; }
     public string Title { get; set; } = string.Empty;
