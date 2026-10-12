@@ -33,6 +33,7 @@ Settings live in `PersonalLifeOS.API/appsettings.Development.json` (connection s
 
 | Document | What it covers |
 |---|---|
+| [START.md](START.md) | Windows PowerShell commands for starting the database, backend, and frontend |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Solution layers, backend conventions, API endpoints, database, frontend structure |
 | [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md) | Colors, sizes, components, page patterns, behaviors — how to build new UI |
 | [docs/TESTING-GUIDE.md](docs/TESTING-GUIDE.md) | Running locally, required checks, manual test checklist, troubleshooting |
