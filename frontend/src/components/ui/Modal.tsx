@@ -1,5 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
+import { Icon } from './Icon';
 
 interface ModalProps {
   open: boolean;
@@ -7,55 +9,86 @@ interface ModalProps {
   title: string;
   children: React.ReactNode;
   maxWidth?: string;
+  /** Use "alertdialog" for confirmations that interrupt the user. */
+  role?: 'dialog' | 'alertdialog';
+  /** While true (e.g. saving), the dialog can't be closed and its controls are disabled */
+  busy?: boolean;
+  /** Element to focus on open; defaults to the first focusable element. */
+  initialFocusRef?: React.RefObject<HTMLElement | null>;
+  /** "prompt": compact pale-blue box with no header band; the title is shown as a bold question above the buttons */
+  variant?: 'default' | 'prompt';
 }
 
-export function Modal({ open, onClose, title, children, maxWidth = '520px' }: ModalProps) {
+const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+export function Modal({ open, onClose, title, children, maxWidth = '520px', role = 'dialog', initialFocusRef, busy = false, variant = 'default' }: ModalProps) {
+  const { t } = useTranslation();
+  const titleId = useId();
+  const panelRef = useRef<HTMLDivElement>(null);
+  // Latest onClose/busy without re-running the open/close effect when the parent re-renders
+  const onCloseRef = useRef(onClose);
+  const busyRef = useRef(busy);
+  useEffect(() => { onCloseRef.current = onClose; busyRef.current = busy; });
+
   useEffect(() => {
     if (!open) return;
+
+    const previouslyFocused = document.activeElement as HTMLElement | null;
     document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
-  }, [open]);
+    const panel = panelRef.current;
+    (initialFocusRef?.current ?? panel?.querySelector<HTMLElement>(FOCUSABLE))?.focus();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { if (!busyRef.current) onCloseRef.current(); return; }
+      if (e.key !== 'Tab' || !panel) return;
+      // Keep Tab focus inside the dialog
+      const items = Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE));
+      if (items.length === 0) return;
+      const first = items[0], last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = '';
+      previouslyFocused?.focus();
+    };
+  }, [open, initialFocusRef]);
 
   if (!open) return null;
 
   return createPortal(
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(2px)', WebkitBackdropFilter: 'blur(2px)' }}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4 backdrop-blur-[2px]">
       <div
-        className="relative w-full rounded-2xl shadow-2xl modal-enter"
-        style={{
-          maxWidth,
-          background: 'var(--bg-surface)',
-          border: '1px solid var(--border-subtle)',
-        }}
-        onClick={(e) => e.stopPropagation()}
+        ref={panelRef}
+        role={role}
+        aria-modal="true"
+        aria-labelledby={titleId}
+        style={{ maxWidth }}
+        className={`brand-scroll relative max-h-[calc(100vh-2rem)] w-full animate-modal-in overflow-y-auto rounded-lg border shadow-pop ${
+          variant === 'prompt' ? 'border-primary bg-table-head' : 'border-line bg-surface'
+        }`}
       >
-        {/* Header */}
-        <div
-          className="flex items-center justify-between px-6 py-4"
-          style={{ borderBottom: '1px solid var(--border-subtle)' }}
-        >
-          <h2 className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
-            {title}
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-            style={{ background: 'var(--bg-subtle)', color: 'var(--text-muted)' }}
-          >
-            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className="px-6 py-5">
-          {children}
-        </div>
+        {variant === 'prompt' ? (
+          <h2 id={titleId} className="px-4 pt-4 text-sm font-bold text-title">{title}</h2>
+        ) : (
+          <div className="flex items-center justify-between border-b border-line bg-band px-5 py-3">
+            <h2 id={titleId} className="text-base font-bold text-accent">{title}</h2>
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={busy}
+              aria-label={t('common.close')}
+              className="inline-flex size-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-surface hover:text-heading"
+            >
+              <Icon name="x" />
+            </button>
+          </div>
+        )}
+        {/* A disabled fieldset disables every field and button inside while busy */}
+        <fieldset disabled={busy} aria-busy={busy || undefined} className="min-w-0 p-5">{children}</fieldset>
       </div>
     </div>,
     document.body,

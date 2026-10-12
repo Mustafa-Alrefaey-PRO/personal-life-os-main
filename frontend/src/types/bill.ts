@@ -14,7 +14,7 @@ export interface CreateBillRequest {
   reminderDaysBefore: number;
 }
 
+/** Status is changed through pay/unpay, not here. */
 export interface UpdateBillRequest extends CreateBillRequest {
   id: number;
-  statusCode: string;
 }

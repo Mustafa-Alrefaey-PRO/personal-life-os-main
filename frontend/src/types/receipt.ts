@@ -4,7 +4,7 @@ export interface Receipt {
   amount: number;
   date: string;
   category?: string;
-  imagePath: string;
+  hasImage: boolean;
   statusCode: string;
   createdDate: string;
 }
@@ -16,10 +16,6 @@ export interface CreateReceiptRequest {
   category?: string;
 }
 
-export interface UpdateReceiptRequest {
+export interface UpdateReceiptRequest extends CreateReceiptRequest {
   id: number;
-  title: string;
-  amount: number;
-  date: string;
-  category?: string;
 }

@@ -30,6 +30,12 @@ export const receiptService = {
     return response.data;
   },
 
+  // Images are private: fetched with the auth header, then shown via an object URL
+  async getReceiptImage(id: number): Promise<Blob> {
+    const response = await api.get<Blob>(`/receipts/${id}/image`, { responseType: 'blob' });
+    return response.data;
+  },
+
   async deleteReceipt(id: number): Promise<ApiResponse<object>> {
     const response = await api.delete<ApiResponse<object>>(`/receipts/${id}`);
     return response.data;

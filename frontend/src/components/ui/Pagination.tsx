@@ -1,3 +1,6 @@
+import { useTranslation } from 'react-i18next';
+import { Icon } from './Icon';
+
 interface PaginationProps {
   page: number;
   totalPages: number;
@@ -6,7 +9,11 @@ interface PaginationProps {
   pageSize: number;
 }
 
+const stepButton = 'inline-flex h-8 items-center gap-1.5 rounded border border-line-strong px-3 text-[13px] font-semibold text-muted transition-colors duration-150 hover:bg-hover hover:text-title disabled:opacity-40 disabled:hover:bg-transparent';
+
+/** Centered pager: outlined Previous/Next and the current page as a dark-blue circle. */
 export function Pagination({ page, totalPages, onPageChange, totalItems, pageSize }: PaginationProps) {
+  const { t } = useTranslation();
   if (totalPages <= 1) return null;
 
   const from = (page - 1) * pageSize + 1;
@@ -23,80 +30,28 @@ export function Pagination({ page, totalPages, onPageChange, totalItems, pageSiz
     pages.push(totalPages);
   }
 
-  const btnBase: React.CSSProperties = {
-    minWidth: '1.5rem',
-    height: '1.5rem',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: '0.375rem',
-    fontSize: '0.7rem',
-    fontWeight: 500,
-    cursor: 'pointer',
-    transition: 'all 0.15s',
-    border: '1px solid var(--border-subtle)',
-    background: 'var(--bg-surface)',
-    color: 'var(--text-secondary)',
-    padding: '0 0.3rem',
-  };
-
-  const activeStyle: React.CSSProperties = {
-    ...btnBase,
-    background: 'var(--accent)',
-    borderColor: 'var(--accent)',
-    color: '#fff',
-    fontWeight: 600,
-  };
-
-  const disabledStyle: React.CSSProperties = {
-    ...btnBase,
-    opacity: 0.35,
-    cursor: 'not-allowed',
-  };
-
   return (
-    <div className="flex items-center justify-between gap-4 pt-4 pb-2 mt-2 flex-wrap">
-      <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>
-        {from}–{to} of {totalItems}
-      </span>
-
-      <div className="flex items-center gap-1">
-        {/* Prev */}
-        <button
-          onClick={() => onPageChange(page - 1)}
-          disabled={page === 1}
-          style={page === 1 ? disabledStyle : btnBase}
-        >
-          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/>
-          </svg>
-        </button>
-
-        {pages.map((p, idx) =>
-          p === 'ellipsis' ? (
-            <span key={`e${idx}`} style={{ color: 'var(--text-muted)', fontSize: '0.8125rem', padding: '0 0.25rem' }}>…</span>
-          ) : (
-            <button
-              key={p}
-              onClick={() => onPageChange(p)}
-              style={p === page ? activeStyle : btnBase}
-            >
-              {p}
-            </button>
-          )
-        )}
-
-        {/* Next */}
-        <button
-          onClick={() => onPageChange(page + 1)}
-          disabled={page === totalPages}
-          style={page === totalPages ? disabledStyle : btnBase}
-        >
-          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
-          </svg>
-        </button>
-      </div>
-    </div>
+    <nav aria-label={t('pagination.range', { from, to, total: totalItems })} className="flex items-center justify-center gap-2 pt-4">
+      <button type="button" onClick={() => onPageChange(page - 1)} disabled={page === 1} className={stepButton}>
+        <Icon name="chevronLeft" className="size-4 rtl:rotate-180" />
+        {t('pagination.previous')}
+      </button>
+      {pages.map((p, idx) =>
+        p === 'ellipsis' ? (
+          <span key={`e${idx}`} className="px-1 text-muted">…</span>
+        ) : (
+          <button key={p} type="button" onClick={() => onPageChange(p)} aria-current={p === page ? 'page' : undefined}
+            className={`inline-flex size-8 items-center justify-center rounded-full text-[13px] font-semibold transition-colors duration-150 ${
+              p === page ? 'bg-primary-dark text-on-primary' : 'text-muted hover:bg-hover hover:text-title'
+            }`}>
+            {p}
+          </button>
+        ),
+      )}
+      <button type="button" onClick={() => onPageChange(page + 1)} disabled={page === totalPages} className={stepButton}>
+        {t('pagination.next')}
+        <Icon name="chevronRight" className="size-4 rtl:rotate-180" />
+      </button>
+    </nav>
   );
 }

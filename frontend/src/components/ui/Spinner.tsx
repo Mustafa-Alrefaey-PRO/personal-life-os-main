@@ -3,23 +3,17 @@ interface SpinnerProps {
   className?: string;
 }
 
-export function Spinner({ size = 'md', className = '' }: SpinnerProps) {
-  const sizes = { sm: 'w-4 h-4 border-2', md: 'w-8 h-8 border-2', lg: 'w-12 h-12 border-[3px]' };
-  return (
-    <div
-      className={`${sizes[size]} rounded-full border-[var(--border-muted)] border-t-[var(--accent)] animate-spin ${className}`}
-      style={{ borderColor: 'var(--bg-muted)', borderTopColor: 'var(--accent)' }}
-      role="status"
-      aria-label="Loading"
-    />
-  );
+const sizes = { sm: 'size-4 border-2', md: 'size-8 border-2', lg: 'size-10 border-3' };
+
+export function Spinner({ size = 'md', className = 'border-line border-t-primary' }: SpinnerProps) {
+  return <span role="status" aria-label="Loading" className={`inline-block animate-spin rounded-full ${sizes[size]} ${className}`} />;
 }
 
 export function PageLoader({ message }: { message?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-24 gap-4">
+    <div className="flex flex-col items-center justify-center gap-4 py-24">
       <Spinner size="lg" />
-      {message && <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{message}</p>}
+      {message && <p className="text-sm text-muted">{message}</p>}
     </div>
   );
 }

@@ -7,7 +7,12 @@
     "receipts": "الإيصالات",
     "journal": "اليوميات",
     "profile": "الملف الشخصي",
-    "logout": "تسجيل الخروج"
+    "logout": "تسجيل الخروج",
+    "expandSidebar": "توسيع الشريط الجانبي",
+    "collapseSidebar": "طي الشريط الجانبي",
+    "menu": "القائمة الرئيسية",
+    "openMenu": "فتح القائمة",
+    "toggleSidebar": "إظهار/إخفاء الشريط الجانبي"
   },
   "auth": {
     "appName": "نظام الحياة الشخصية",
@@ -25,10 +30,16 @@
     "loginLink": "تسجيل الدخول",
     "passwordMismatch": "كلمتا المرور غير متطابقتين",
     "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
-    "serverError": "تعذّر الاتصال بالخادم. حاول مجدداً."
+    "serverError": "تعذّر الاتصال بالخادم. حاول مجدداً.",
+    "fullNamePlaceholder": "اسمك",
+    "emailExists": "يوجد حساب مسجّل بهذا البريد الإلكتروني بالفعل.",
+    "lockedOut": "محاولات فاشلة كثيرة. حاول مجدداً بعد بضع دقائق.",
+    "registerFailed": "تعذّر إنشاء الحساب. تحقّق من بياناتك.",
+    "tagline": "نظّم مهامك وفواتيرك وأموالك في مكان واحد.",
+    "loginSubtitle": "سجّل الدخول للمتابعة إلى لوحة التحكم.",
+    "registerSubtitle": "أنشئ حسابك للبدء."
   },
   "dashboard": {
-    "title": "لوحة التحكم",
     "goodMorning": "صباح الخير",
     "goodAfternoon": "مساء الخير",
     "goodEvening": "مساء الخير",
@@ -46,13 +57,25 @@
     "loading": "جارٍ تحميل لوحة التحكم…",
     "error": "فشل تحميل بيانات لوحة التحكم",
     "financialOverview": "النظرة المالية",
-    "taskProgress": "تقدم المهام"
+    "taskProgress": "تقدم المهام",
+    "viewAll": "عرض الكل",
+    "welcomeHint": "هذا ما يحتاج انتباهك اليوم.",
+    "todayFocus": "تركيز اليوم",
+    "allCaughtUp": "لا شيء متأخر أو مستحق اليوم — أحسنت!",
+    "dueToday": "مستحقة اليوم",
+    "nextBill": "الفاتورة القادمة",
+    "quick": {
+      "task": "مهمة",
+      "bill": "فاتورة",
+      "transaction": "معاملة",
+      "journal": "يومية"
+    }
   },
   "tasks": {
     "title": "المهام",
     "total": "مهام",
     "createTask": "مهمة جديدة",
-    "cancel": "إلغاء",
+    "cancel": "إلغاء العملية",
     "taskTitle": "العنوان",
     "description": "الوصف",
     "dueDate": "تاريخ الاستحقاق",
@@ -78,20 +101,21 @@
     "updated": "تمّ تحديث المهمة",
     "titlePlaceholder": "أدخل عنوان المهمة",
     "descriptionPlaceholder": "وصف اختياري…",
-    "categoryPlaceholder": "مثال: عمل، شخصي",
     "priority": "الأولوية",
     "priorityHigh": "عالية",
     "priorityMedium": "متوسطة",
     "priorityLow": "منخفضة",
     "priorityNone": "بدون",
     "filterPriorityAll": "كل الأولويات",
-    "markedPending": "تمّ إعادة المهمة إلى قيد الانتظار"
+    "markedPending": "تمّ إعادة المهمة إلى قيد الانتظار",
+    "details": "تفاصيل المهمة",
+    "sectionInfo": "بيانات المهمة"
   },
   "bills": {
     "title": "الفواتير",
     "addBill": "إضافة فاتورة",
     "editBill": "تعديل الفاتورة",
-    "cancel": "إلغاء",
+    "cancel": "إلغاء العملية",
     "name": "اسم الفاتورة",
     "amount": "المبلغ",
     "dueDate": "تاريخ الاستحقاق",
@@ -121,7 +145,10 @@
     "noResultsHint": "جرّب تعديل البحث أو الفلتر.",
     "filterAll": "الكل",
     "filterPending": "معلّقة",
-    "filterPaid": "مدفوعة"
+    "filterPaid": "مدفوعة",
+    "details": "تفاصيل الفاتورة",
+    "sectionInfo": "بيانات الفاتورة",
+    "sectionSchedule": "الاستحقاق والتذكير"
   },
   "transactions": {
     "title": "المعاملات",
@@ -136,8 +163,6 @@
     "adding": "جارٍ الإضافة…",
     "income": "دخل",
     "expense": "مصروف",
-    "expenses": "المصروفات",
-    "balance": "الرصيد",
     "all": "الكل",
     "noTransactions": "لا توجد معاملات بعد",
     "noTransactionsHint": "أضف أول دخل أو مصروف لبدء التتبّع.",
@@ -147,10 +172,12 @@
     "updated": "تمّ تحديث المعاملة",
     "edit": "تعديل",
     "delete": "حذف",
-    "categoryPlaceholder": "مثال: طعام، راتب",
     "search": "بحث في المعاملات…",
     "noResults": "لا توجد معاملات مطابقة",
-    "noResultsHint": "جرّب تعديل البحث أو الفلتر."
+    "noResultsHint": "جرّب تعديل البحث أو الفلتر.",
+    "type": "النوع",
+    "details": "تفاصيل المعاملة",
+    "sectionInfo": "بيانات المعاملة"
   },
   "journal": {
     "title": "اليوميات",
@@ -162,7 +189,7 @@
     "save": "حفظ التدوين",
     "saveChanges": "حفظ التغييرات",
     "saving": "جارٍ الحفظ…",
-    "cancel": "إلغاء",
+    "cancel": "إلغاء العملية",
     "edit": "تعديل",
     "delete": "حذف",
     "noEntries": "لا توجد تدوينات بعد",
@@ -172,15 +199,16 @@
     "saved": "تمّ حفظ التدوين",
     "updated": "تمّ تحديث التدوين",
     "deleted": "تمّ حذف التدوين",
-    "duplicateDate": "يوجد تدوين لهذا التاريخ بالفعل",
     "search": "بحث في اليوميات…",
     "noResults": "لا توجد تدوينات مطابقة",
-    "noResultsHint": "جرّب تعديل البحث أو فلتر التاريخ."
+    "noResultsHint": "جرّب تعديل البحث أو فلتر التاريخ.",
+    "details": "تفاصيل المدخل",
+    "sectionInfo": "مدخل اليوميات"
   },
   "receipts": {
     "title": "الإيصالات",
     "upload": "رفع إيصال",
-    "cancel": "إلغاء",
+    "cancel": " إلغاء العملية",
     "receiptTitle": "العنوان",
     "amount": "المبلغ",
     "date": "التاريخ",
@@ -200,14 +228,16 @@
     "updated": "تمّ تحديث الإيصال",
     "imageUpdated": "تمّ تحديث صورة الإيصال",
     "titlePlaceholder": "مثال: محل البقالة",
-    "categoryPlaceholder": "مثال: طعام، مواصلات",
     "search": "بحث في الإيصالات…",
     "noResults": "لا توجد إيصالات مطابقة",
-    "noResultsHint": "جرّب تعديل البحث أو الفلتر."
+    "noResultsHint": "جرّب تعديل البحث أو الفلتر.",
+    "details": "تفاصيل الإيصال",
+    "currentImage": "صورة الإيصال",
+    "noImage": "لا توجد صورة",
+    "sectionInfo": "بيانات الإيصال"
   },
   "profile": {
     "title": "الملف الشخصي",
-    "userInfo": "معلومات المستخدم",
     "fullName": "الاسم الكامل",
     "email": "البريد الإلكتروني",
     "preferences": "التفضيلات",
@@ -215,13 +245,19 @@
     "darkModeDesc": "التبديل بين المظهر الفاتح والداكن",
     "language": "اللغة",
     "languageDesc": "اختر لغتك المفضّلة",
-    "stats": "إحصائيات الحساب",
-    "totalTasks": "إجمالي المهام",
-    "completed": "مكتملة",
-    "journalEntries": "تدوينات اليوميات",
-    "receipts": "الإيصالات",
     "ramadanMode": "مظهر رمضان",
-    "ramadanModeDesc": "تفعيل اللمسات البصرية الرمضانية في جميع أنحاء التطبيق"
+    "ramadanModeDesc": "تفعيل اللمسات البصرية الرمضانية في جميع أنحاء التطبيق",
+    "userInfo": "معلومات الحساب",
+    "appearance": "المظهر",
+    "brandColor": "لون الهوية",
+    "brandColorDesc": "اختر اللون المميّز المستخدم في التطبيق بالكامل.",
+    "brands": {
+      "ocean": "الأزرق المحيطي (افتراضي)",
+      "navy": "كحلي",
+      "teal": "فيروزي",
+      "graphite": "رمادي فحمي",
+      "burgundy": "عنابي"
+    }
   },
   "categories": {
     "placeholder": "اختر تصنيفاً",
@@ -246,31 +282,66 @@
   },
   "common": {
     "due": "الاستحقاق",
-    "loading": "جارٍ التحميل…",
     "error": "حدث خطأ ما",
     "retry": "إعادة المحاولة",
-    "save": "حفظ",
-    "cancel": "إلغاء",
+    "cancel": "إلغاء العملية",
     "delete": "حذف",
-    "edit": "تعديل",
     "na": "غير متاح",
     "copyright": "© {{year}} نظام الحياة الشخصية — جميع الحقوق محفوظة",
     "confirmDelete": "تأكيد الحذف",
     "confirmDeleteMsg": "هل أنت متأكد من الحذف؟ لا يمكن التراجع عن هذا الإجراء.",
     "saveChanges": "حفظ التغييرات",
     "saving": "جارٍ الحفظ…",
-    "updated": "تمّ التحديث بنجاح",
     "requiredField": "يرجى ملء جميع الحقول المطلوبة",
     "selectDate": "اختر تاريخاً",
     "dateFrom": "من",
     "dateTo": "إلى",
     "clearFilters": "مسح",
     "actions": "إجراءات",
-    "status": "الحالة"
+    "status": "الحالة",
+    "showPassword": "إظهار كلمة المرور",
+    "hidePassword": "إخفاء كلمة المرور",
+    "clearDate": "مسح التاريخ",
+    "close": "إغلاق",
+    "builtBy": "تصميم وتطوير {{name}}",
+    "month": "الشهر",
+    "year": "السنة",
+    "back": "رجوع",
+    "view": "عرض التفاصيل",
+    "preview": "معاينة سريعة",
+    "notFound": "السجل غير موجود",
+    "notFoundHint": "ربما تم حذفه. ارجع إلى القائمة وحاول مرة أخرى.",
+    "backToList": "العودة إلى القائمة",
+    "createdOn": "أُنشئ في {{date}}",
+    "currentStatus": "الحالة الحالية",
+    "leaveTitle": "لن يتم حفظ البيانات المدخلة، هل أنت متأكد من الخروج؟",
+    "leaveConfirm": "تأكيد العملية",
+    "leaveStay": "إلغاء العملية",
+    "details": "التفاصيل"
   },
   "ramadan": {
     "greeting": "رمضان كريم",
-    "subtext": "نتمنى لكم شهراً مباركاً وهادئاً مليئاً بالخير والعطاء.",
-    "dismiss": "إغلاق"
+    "subtext": "نتمنى لكم شهراً مباركاً وهادئاً مليئاً بالخير والعطاء."
+  },
+  "theme": {
+    "toLight": "التبديل إلى الوضع الفاتح",
+    "toDark": "التبديل إلى الوضع الداكن"
+  },
+  "pagination": {
+    "range": "{{from}}–{{to}} من {{total}}",
+    "previous": "الصفحة السابقة",
+    "next": "الصفحة التالية"
+  },
+  "validation": {
+    "required": "مطلوب",
+    "invalidEmail": "أدخل بريدًا إلكترونيًا صحيحًا",
+    "amountPositive": "يجب أن يكون أكبر من صفر",
+    "passwordRules": "6 أحرف على الأقل وتتضمن رقمًا"
+  },
+  "filters": {
+    "title": "تصفية",
+    "clear": "تفريغ حقول البحث",
+    "keyword": "كلمة البحث",
+    "searchFilter": "بحث / تصفية"
   }
 }

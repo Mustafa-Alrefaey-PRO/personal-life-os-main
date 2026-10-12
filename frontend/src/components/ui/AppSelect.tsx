@@ -1,4 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { Icon } from './Icon';
 
 export interface SelectOption {
   value: string;
@@ -10,124 +12,136 @@ interface AppSelectProps {
   onChange: (value: string) => void;
   options: SelectOption[];
   placeholder?: string;
+  id?: string;
 }
 
-export function AppSelect({ value, onChange, options, placeholder = 'Select…' }: AppSelectProps) {
+const MENU_MAX_HEIGHT = 240;
+
+export function AppSelect({ value, onChange, options, placeholder = '', id }: AppSelectProps) {
   const [open, setOpen] = useState(false);
   const [highlightedIdx, setHighlightedIdx] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLUListElement>(null);
 
   const selectedOption = options.find(o => o.value === value && o.value !== '');
 
+  // The menu is portalled to <body> (so modals can't clip it) and positioned under the button,
+  // flipping above when there isn't room below.
+  useLayoutEffect(() => {
+    if (!open) return;
+    const place = () => {
+      const rect = buttonRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const openUp = spaceBelow < MENU_MAX_HEIGHT + 8 && rect.top > spaceBelow;
+      setMenuStyle({
+        position: 'fixed',
+        left: rect.left,
+        width: rect.width,
+        ...(openUp ? { bottom: window.innerHeight - rect.top + 4 } : { top: rect.bottom + 4 }),
+      });
+    };
+    place();
+    window.addEventListener('resize', place);
+    window.addEventListener('scroll', place, true);
+    return () => {
+      window.removeEventListener('resize', place);
+      window.removeEventListener('scroll', place, true);
+    };
+  }, [open]);
+
   // Close on outside click
   useEffect(() => {
+    if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      const target = e.target as Node;
+      if (!buttonRef.current?.contains(target) && !menuRef.current?.contains(target)) setOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, []);
+  }, [open]);
 
-  // Sync highlighted index when opening
-  useEffect(() => {
-    if (open) {
-      const idx = options.findIndex(o => o.value === value);
-      setHighlightedIdx(idx >= 0 ? idx : 0);
-    }
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Highlight the current selection whenever the menu opens
+  const openMenu = () => {
+    const idx = options.findIndex(o => o.value === value);
+    setHighlightedIdx(idx >= 0 ? idx : 0);
+    setOpen(true);
+  };
+
+  const choose = (optionValue: string) => {
+    onChange(optionValue);
+    setOpen(false);
+    buttonRef.current?.focus();
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!open) {
       if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
         e.preventDefault();
-        setOpen(true);
+        openMenu();
       }
       return;
     }
-    if (e.key === 'Escape') { setOpen(false); return; }
+    if (e.key === 'Escape') {
+      // Close only the menu, not a surrounding modal
+      e.preventDefault();
+      e.stopPropagation();
+      setOpen(false);
+      return;
+    }
+    if (e.key === 'Tab') { setOpen(false); return; }
     if (e.key === 'ArrowDown') { e.preventDefault(); setHighlightedIdx(i => Math.min(i + 1, options.length - 1)); }
     if (e.key === 'ArrowUp') { e.preventDefault(); setHighlightedIdx(i => Math.max(i - 1, 0)); }
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (highlightedIdx >= 0 && highlightedIdx < options.length) {
-        onChange(options[highlightedIdx].value);
-        setOpen(false);
-      }
+      if (highlightedIdx >= 0 && highlightedIdx < options.length) choose(options[highlightedIdx].value);
     }
   };
 
   return (
-    <div ref={containerRef} className="relative w-full">
+    <div className="relative w-full">
       <button
+        ref={buttonRef}
+        id={id}
         type="button"
-        onClick={() => setOpen(!open)}
+        onClick={() => (open ? setOpen(false) : openMenu())}
         onKeyDown={handleKeyDown}
-        className="w-full rounded-lg text-sm flex items-center justify-between gap-2 transition-all outline-none"
-        style={{
-          background: 'var(--bg-input)',
-          border: `1px solid ${open ? 'var(--accent)' : 'var(--border-default)'}`,
-          color: selectedOption ? 'var(--text-primary)' : 'var(--text-muted)',
-          boxShadow: open ? '0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent)' : 'none',
-          padding: '0.5625rem 0.75rem',
-          textAlign: 'start',
-        }}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className={`flex min-h-13 w-full items-center justify-between gap-2 rounded-md border bg-input px-3 text-start text-[13px] font-semibold transition-colors ${
+          open ? 'border-primary ring-3 ring-primary/20' : 'border-input-line hover:border-primary-hover'
+        } ${selectedOption ? 'text-title' : 'text-muted'}`}
       >
         <span className="truncate">{selectedOption?.label ?? placeholder}</span>
-        <svg
-          width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-          style={{
-            transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
-            transition: 'transform 0.2s',
-            flexShrink: 0,
-            color: 'var(--text-muted)',
-          }}
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 9l6 6 6-6"/>
-        </svg>
+        <Icon name="chevronDown" className={`size-4 shrink-0 text-title transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 
-      {open && (
-        <div
-          className="absolute z-50 w-full mt-1 rounded-xl py-1 overflow-auto"
-          style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-default)',
-            boxShadow: 'var(--shadow-lg)',
-            maxHeight: '15rem',
-          }}
-        >
+      {open && createPortal(
+        <ul ref={menuRef} role="listbox" style={menuStyle}
+          className="brand-scroll z-[70] max-h-60 overflow-auto rounded-md border border-line bg-surface py-1 shadow-pop">
           {options.map((option, idx) => {
-            const isSelected = option.value === value;
-            const isHighlighted = idx === highlightedIdx;
+            const isSelected = option.value === value && option.value !== '';
             const isEmpty = option.value === '';
             return (
-              <button
-                key={option.value || '__placeholder__'}
-                type="button"
-                onMouseEnter={() => setHighlightedIdx(idx)}
-                onClick={() => { onChange(option.value); setOpen(false); }}
-                className="w-full px-3 py-2 text-sm flex items-center gap-2"
-                style={{
-                  background: isHighlighted && !isEmpty ? 'var(--bg-subtle)' : 'transparent',
-                  color: isSelected && !isEmpty ? 'var(--accent)' : isEmpty ? 'var(--text-muted)' : 'var(--text-primary)',
-                  fontWeight: isSelected && !isEmpty ? 600 : 400,
-                  textAlign: 'start',
-                }}
-              >
-                <span className="w-4 shrink-0 flex items-center justify-center">
-                  {isSelected && !isEmpty && (
-                    <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"/>
-                    </svg>
-                  )}
-                </span>
-                {option.label}
-              </button>
+              <li key={option.value || '__placeholder__'} role="option" aria-selected={isSelected}>
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onMouseEnter={() => setHighlightedIdx(idx)}
+                  onClick={() => choose(option.value)}
+                  className={`flex w-full items-center gap-2 px-3 py-2 text-start text-[13px] font-semibold ${
+                    idx === highlightedIdx ? 'bg-hover' : ''
+                  } ${isSelected ? 'font-semibold text-primary' : isEmpty ? 'text-muted' : 'text-heading'}`}
+                >
+                  <span className="flex w-4 shrink-0 justify-center">{isSelected && <Icon name="check" className="size-3.5" />}</span>
+                  {option.label}
+                </button>
+              </li>
             );
           })}
-        </div>
+        </ul>,
+        document.body,
       )}
     </div>
   );

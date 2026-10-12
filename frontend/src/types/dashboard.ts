@@ -1,15 +1,7 @@
 // Dashboard types matching the API DTOs
 
 import type { Task } from './task';
-
-export interface Bill {
-  id: number;
-  name: string;
-  amount: number;
-  dueDate: string;
-  statusCode: string;
-  reminderDaysBefore: number;
-}
+import type { Bill } from './bill';
 
 export interface DashboardData {
   totalTasks: number;

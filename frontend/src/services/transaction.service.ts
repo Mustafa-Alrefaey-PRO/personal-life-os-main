@@ -1,11 +1,25 @@
 import api from './api';
+import type { ApiResponse } from '../types/api';
 import type { Transaction, CreateTransactionRequest, UpdateTransactionRequest } from '../types/transaction';
 
-interface ApiResponse<T> { data: T; message: string; success: boolean; }
-
 export const transactionService = {
-  getAllTransactions: () => api.get<ApiResponse<Transaction[]>>('/transactions').then((r) => r.data),
-  createTransaction: (req: CreateTransactionRequest) => api.post<ApiResponse<Transaction>>('/transactions', req).then((r) => r.data),
-  updateTransaction: (id: number, req: UpdateTransactionRequest) => api.put<ApiResponse<null>>(`/transactions/${id}`, req).then((r) => r.data),
-  deleteTransaction: (id: number) => api.delete<ApiResponse<null>>(`/transactions/${id}`).then((r) => r.data),
+  async getAllTransactions(): Promise<ApiResponse<Transaction[]>> {
+    const response = await api.get<ApiResponse<Transaction[]>>('/transactions');
+    return response.data;
+  },
+
+  async createTransaction(data: CreateTransactionRequest): Promise<ApiResponse<Transaction>> {
+    const response = await api.post<ApiResponse<Transaction>>('/transactions', data);
+    return response.data;
+  },
+
+  async updateTransaction(id: number, data: UpdateTransactionRequest): Promise<ApiResponse<object>> {
+    const response = await api.put<ApiResponse<object>>(`/transactions/${id}`, data);
+    return response.data;
+  },
+
+  async deleteTransaction(id: number): Promise<ApiResponse<object>> {
+    const response = await api.delete<ApiResponse<object>>(`/transactions/${id}`);
+    return response.data;
+  },
 };
