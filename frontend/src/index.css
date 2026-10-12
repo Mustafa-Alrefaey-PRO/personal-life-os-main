@@ -1,604 +1,429 @@
 @import "tailwindcss";
 @import "react-datepicker/dist/react-datepicker.css";
 
-@variant dark (&:where(.dark, .dark *));
+/* `dark:` utilities follow the .dark class on <html> (set by themeStore) */
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Design tokens — Light mode (Claude aesthetic)
+   Palette — Personal Life OS design system (brand blue, orange secondary, Cairo font)
+   Components use the Tailwind colors below (bg-surface, border-line, text-heading…),
+   never these variables or hex values directly.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 :root {
-  /* Backgrounds */
-  --bg-base:        #f7f5f0;   /* Claude's signature warm cream page */
-  --bg-surface:     #ffffff;   /* Card / panel surfaces              */
-  --bg-subtle:      #ede9e0;   /* Hover tints, subtle areas          */
-  --bg-muted:       #e2ddd5;   /* Stronger muted bg                  */
-  --bg-input:       #ffffff;   /* Input / textarea background        */
-  --bg-sidebar:     #f0ece4;   /* Sidebar panel                      */
-  --bg-row-hover:   #f0ece4;   /* Table row hover                    */
+  --c-page:          #ffffff;
+  --c-surface:       #fefefe;
+  --c-band:          #f8f8f8;   /* card headers, muted panels */
+  --c-hover:         #e9f4fb;   /* row and menu hover */
+  --c-table-head:    #f2faff;   /* table header background */
+  --c-line:          #e5e5e6;   /* outlines of cards, tables, panels */
+  --c-line-strong:   #cbcbcd;
+  --c-line-soft:     #f2f2f2;   /* table column dividers */
+  --c-input:         #fefefe;
+  --c-input-line:    #165783;   /* inputs are outlined in dark blue */
 
-  /* Text */
-  --text-primary:   #111009;
-  --text-secondary: #2e2b28;
-  --text-muted:     #706a63;
+  --c-heading:       #051520;
+  --c-body:          #0a0a0a;
+  --c-muted:         #656567;
+  --c-title:         #165783;   /* page titles, labels, links */
 
-  /* Borders */
-  --border-default: #d5cfc6;
-  --border-subtle:  #e8e3da;
-  --border-focus:   #c96030;
+  --c-primary:       #1d75af;   /* buttons, active states */
+  --c-primary-hover: #0f3a57;
+  --c-primary-dark:  #165783;   /* table headers, strong panels */
+  --c-primary-soft:  #e9f4fb;
+  --c-on-primary:    #fefefe;
+  --c-accent:        #fd7a41;   /* section titles, secondary */
 
-  /* Accent — Claude's terracotta/orange */
-  --accent:         #c96030;
-  --accent-hover:   #b05428;
-  --accent-active:  #9a4820;
-  --accent-light:   #fef3ec;
-  --accent-text:    #ffffff;
+  --c-sidebar:        #fefefe;
+  --c-sidebar-hover:  #f2faff;
+  --c-sidebar-line:   #e5e5e6;
+  --c-sidebar-text:   #165783;
+  --c-sidebar-muted:  #656567;
 
-  /* Semantic colours */
-  --success:        #1a7a40;
-  --success-bg:     #edfaf3;
-  --success-border: #b8e8cc;
+  --c-success:       #3f8d6b;
+  --c-success-soft:  #edf7f3;
+  --c-success-line:  #bcdccd;
+  --c-warning:       #f5682b;
+  --c-warning-soft:  #ffebe6;
+  --c-warning-line:  #fdc6ad;
+  --c-danger:        #ba1212;
+  --c-danger-soft:   #fde8e8;
+  --c-danger-line:   #f4b8b8;
+  --c-danger-text:   #8b0e0e;   /* error labels and messages */
+  --c-info:          #1d75af;
+  --c-info-soft:     #e9f4fb;
+  --c-info-line:     #b8d8ee;
 
-  --warning:        #a85d00;
-  --warning-bg:     #fff8ec;
-  --warning-border: #fcd89a;
-
-  --danger:         #bf1b1b;
-  --danger-bg:      #fef2f2;
-  --danger-border:  #fccaca;
-
-  --info:           #1a65a8;
-  --info-bg:        #eff6ff;
-
-  /* Shadows */
-  --shadow-xs:  0 1px 2px rgba(0,0,0,0.05);
-  --shadow-sm:  0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md:  0 4px 12px rgba(0,0,0,0.10), 0 1px 3px rgba(0,0,0,0.05);
-  --shadow-lg:  0 8px 24px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.06);
+  --c-overlay:       rgb(5 21 32 / 0.5);
 }
 
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Dark mode tokens
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* Dark mode: the same blues and orange on deep navy */
 .dark {
-  /* Neutral 'system' dark palette (cool grays) */
-  --bg-base:        #0b0b0c;   /* page background */
-  --bg-surface:     #161617;   /* cards and panels */
-  --bg-subtle:      #1f1f20;   /* subtle areas, headers */
-  --bg-muted:       #272728;   /* stronger muted background */
-  --bg-input:       #151516;   /* inputs */
-  --bg-sidebar:     #0f0f10;   /* sidebar panel */
-  --bg-row-hover:   #202023;   /* table row hover */
+  --c-page:          #0a1621;
+  --c-surface:       #0f1f2c;
+  --c-band:          #132735;
+  --c-hover:         #16324a;
+  --c-table-head:    #132a3c;
+  --c-line:          #1f3a50;
+  --c-line-strong:   #2c5070;
+  --c-line-soft:     #172f42;
+  --c-input:         #0a1621;
+  --c-input-line:    #2c6a99;
 
-  /* Text */
-  --text-primary:   #e6e6e6;
-  --text-secondary: #cfcfcf;
-  --text-muted:     #9a9a9a;
+  --c-heading:       #eef5fb;
+  --c-body:          #cddbe6;
+  --c-muted:         #8aa1b3;
+  --c-title:         #7fbfe9;
 
-  /* Borders */
-  --border-default: #2a2a2b;
-  --border-subtle:  #1f1f20;
-  --border-focus:   #3aa0ff;   /* bluish focus ring for familiarity */
+  --c-primary:       #2b8ad0;
+  --c-primary-hover: #50a8e2;
+  --c-primary-dark:  #165783;
+  --c-primary-soft:  rgb(80 168 226 / 0.16);
+  --c-on-primary:    #fefefe;
+  --c-accent:        #fd8a57;
 
-  /* Accent: keep accent hue but slightly brighter on dark */
-  /* Use a stable accent for dark mode to ensure consistent rendering */
-  --accent:         #d68648; /* slightly brighter warm accent on dark */
-  --accent-hover:   #c27640;
-  --accent-active:  #a86534;
-  --accent-light:   rgba(255,255,255,0.04);
-  --accent-text:    #ffffff;
+  --c-sidebar:        #0c1b27;
+  --c-sidebar-hover:  #132a3c;
+  --c-sidebar-line:   #1a3346;
+  --c-sidebar-text:   #cddbe6;
+  --c-sidebar-muted:  #7d93a5;
 
-  /* Semantic colors: preserve but tune contrast for dark */
-  --success:        #35d07a;
-  --success-bg:     rgba(53,208,122,0.06);
-  --success-border: rgba(53,208,122,0.18);
+  --c-success:       #5cb38c;
+  --c-success-soft:  rgb(92 179 140 / 0.14);
+  --c-success-line:  rgb(92 179 140 / 0.4);
+  --c-warning:       #fd8a57;
+  --c-warning-soft:  rgb(253 138 87 / 0.14);
+  --c-warning-line:  rgb(253 138 87 / 0.4);
+  --c-danger:        #f06a6a;
+  --c-danger-soft:   rgb(240 106 106 / 0.14);
+  --c-danger-line:   rgb(240 106 106 / 0.4);
+  --c-danger-text:   #f49a9a;
+  --c-info:          #50a8e2;
+  --c-info-soft:     rgb(80 168 226 / 0.14);
+  --c-info-line:     rgb(80 168 226 / 0.4);
 
-  --warning:        #f4b740;
-  --warning-bg:     rgba(244,183,64,0.06);
-  --warning-border: rgba(244,183,64,0.18);
-
-  --danger:         #ff7b7b;
-  --danger-bg:      rgba(255,123,123,0.06);
-  --danger-border:  rgba(255,123,123,0.18);
-
-  --info:           #5ba0f0;
-  --info-bg:        rgba(91,160,240,0.06);
-
-  /* Shadows (subtle in neutral dark) */
-  --shadow-xs:  0 1px 2px rgba(0,0,0,0.35);
-  --shadow-sm:  0 1px 3px rgba(0,0,0,0.45);
-  --shadow-md:  0 4px 12px rgba(0,0,0,0.55);
-  --shadow-lg:  0 8px 24px rgba(0,0,0,0.65);
+  --c-overlay:       rgb(0 0 0 / 0.6);
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Ramadan theme — light mode (warm golden amber)
+   Brand palettes (Profile → Appearance). "ocean" is the default above;
+   each palette only swaps the brand hue, so every screen keeps its structure.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+[data-brand="navy"] {
+  --c-primary: #1f3a68; --c-primary-hover: #142849; --c-primary-dark: #1a3159; --c-primary-soft: #e8edf6;
+  --c-hover: #e8edf6; --c-table-head: #f3f6fb; --c-title: #1a3159; --c-input-line: #1a3159;
+  --c-sidebar-text: #1a3159; --c-info: #1f3a68; --c-info-soft: #e8edf6; --c-info-line: #c3cfe3;
+}
+.dark[data-brand="navy"] {
+  --c-primary: #4a74b8; --c-primary-hover: #6b91cf; --c-primary-dark: #1a3159; --c-primary-soft: rgb(107 145 207 / 0.16);
+  --c-hover: #18263d; --c-table-head: #142036; --c-title: #9db8e3; --c-input-line: #33568c;
+  --c-info: #6b91cf; --c-info-soft: rgb(107 145 207 / 0.16);
+}
+
+[data-brand="teal"] {
+  --c-primary: #0e7c86; --c-primary-hover: #0a5a61; --c-primary-dark: #0b636b; --c-primary-soft: #e5f4f5;
+  --c-hover: #e5f4f5; --c-table-head: #f1f9fa; --c-title: #0b636b; --c-input-line: #0b636b;
+  --c-sidebar-text: #0b636b; --c-info: #0e7c86; --c-info-soft: #e5f4f5; --c-info-line: #b2dde0;
+}
+.dark[data-brand="teal"] {
+  --c-primary: #1a9aa5; --c-primary-hover: #3cb6c0; --c-primary-dark: #0b636b; --c-primary-soft: rgb(60 182 192 / 0.16);
+  --c-hover: #11343a; --c-table-head: #0f2c31; --c-title: #7fd0d6; --c-input-line: #1f7c84;
+  --c-info: #3cb6c0; --c-info-soft: rgb(60 182 192 / 0.16);
+}
+
+[data-brand="graphite"] {
+  --c-primary: #3d4b5c; --c-primary-hover: #28323e; --c-primary-dark: #2f3a47; --c-primary-soft: #edf0f3;
+  --c-hover: #edf0f3; --c-table-head: #f6f7f9; --c-title: #2f3a47; --c-input-line: #2f3a47;
+  --c-sidebar-text: #2f3a47; --c-info: #3d4b5c; --c-info-soft: #edf0f3; --c-info-line: #cdd3da;
+}
+.dark[data-brand="graphite"] {
+  --c-primary: #6b7b8f; --c-primary-hover: #8b9aab; --c-primary-dark: #2f3a47; --c-primary-soft: rgb(139 154 171 / 0.16);
+  --c-hover: #222a33; --c-table-head: #1d242c; --c-title: #b7c2cf; --c-input-line: #4c5a6a;
+  --c-info: #8b9aab; --c-info-soft: rgb(139 154 171 / 0.16);
+}
+
+[data-brand="burgundy"] {
+  --c-primary: #8a1c3c; --c-primary-hover: #611329; --c-primary-dark: #701732; --c-primary-soft: #f8e9ee;
+  --c-hover: #f8e9ee; --c-table-head: #fcf4f6; --c-title: #701732; --c-input-line: #701732;
+  --c-sidebar-text: #701732; --c-info: #8a1c3c; --c-info-soft: #f8e9ee; --c-info-line: #e8c1cd;
+}
+.dark[data-brand="burgundy"] {
+  --c-primary: #b8355a; --c-primary-hover: #d15a7c; --c-primary-dark: #701732; --c-primary-soft: rgb(209 90 124 / 0.16);
+  --c-hover: #3a1521; --c-table-head: #30121c; --c-title: #e89ab0; --c-input-line: #8f2c49;
+  --c-info: #d15a7c; --c-info-soft: rgb(209 90 124 / 0.16);
+}
+
+/* Ramadan theme (opt-in from Profile): gold primary */
 [data-ramadan="true"] {
-  --accent:         #c8881c;
-  --accent-hover:   #b47718;
-  --accent-active:  #a06812;
-  --accent-light:   #fef5e2;
-  --border-focus:   #c8881c;
-  --bg-base:        #f5f0e3;
+  --c-primary:       #a87418;
+  --c-primary-hover: #8e6113;
+  --c-primary-dark:  #7a5410;
+  --c-primary-soft:  #fbf2df;
+  --c-title:         #7a5410;
+  --c-input-line:    #a87418;
+  --c-sidebar-text:  #7a5410;
 }
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Ramadan theme — dark mode (deep midnight indigo + gold)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 [data-ramadan="true"].dark {
-  --bg-base:        #070520;
-  --bg-surface:     #0d0928;
-  --bg-subtle:      #150e38;
-  --bg-muted:       #1c1445;
-  --bg-input:       #100c26;
-  --bg-sidebar:     #090620;
-  --bg-row-hover:   #1a1440;   /* Table row hover                    */
-  --border-default: rgba(155, 120, 230, 0.22);
-  --border-subtle:  rgba(155, 120, 230, 0.12);
-  --border-focus:   #d4a820;
-  --accent:         #d4a820;
-  --accent-hover:   #bf9318;
-  --accent-active:  #a88012;
-  --accent-light:   rgba(212, 168, 32, 0.12);
+  --c-primary:       #d4a820;
+  --c-primary-hover: #e0b838;
+  --c-primary-dark:  #7a5410;
+  --c-primary-soft:  rgb(212 168 32 / 0.14);
+  --c-title:         #e0b838;
+  --c-input-line:    #a87418;
+  --c-sidebar-text:  #e0c46a;
 }
 
-/* Subtle nebula body glow in dark Ramadan */
-[data-ramadan="true"].dark body {
-  background-image:
-    radial-gradient(ellipse at 25% 0%,   rgba(80,  40, 220, 0.09) 0%, transparent 55%),
-    radial-gradient(ellipse at 80% 100%, rgba(100, 20, 180, 0.06) 0%, transparent 50%);
+@theme inline {
+  --font-sans: 'Cairo', ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* Shapes: 8px controls, 12px buttons, 16px cards and dialogs */
+  --radius-md: 0.5rem;
+  --radius-lg: 1rem;
+
+  --color-page: var(--c-page);
+  --color-surface: var(--c-surface);
+  --color-band: var(--c-band);
+  --color-hover: var(--c-hover);
+  --color-table-head: var(--c-table-head);
+  --color-line: var(--c-line);
+  --color-line-strong: var(--c-line-strong);
+  --color-line-soft: var(--c-line-soft);
+  --color-input: var(--c-input);
+  --color-input-line: var(--c-input-line);
+
+  --color-heading: var(--c-heading);
+  --color-body: var(--c-body);
+  --color-muted: var(--c-muted);
+  --color-title: var(--c-title);
+
+  --color-primary: var(--c-primary);
+  --color-primary-hover: var(--c-primary-hover);
+  --color-primary-dark: var(--c-primary-dark);
+  --color-primary-soft: var(--c-primary-soft);
+  --color-on-primary: var(--c-on-primary);
+  --color-accent: var(--c-accent);
+
+  --color-sidebar: var(--c-sidebar);
+  --color-sidebar-hover: var(--c-sidebar-hover);
+  --color-sidebar-line: var(--c-sidebar-line);
+  --color-sidebar-text: var(--c-sidebar-text);
+  --color-sidebar-muted: var(--c-sidebar-muted);
+
+  --color-success: var(--c-success);
+  --color-success-soft: var(--c-success-soft);
+  --color-success-line: var(--c-success-line);
+  --color-warning: var(--c-warning);
+  --color-warning-soft: var(--c-warning-soft);
+  --color-warning-line: var(--c-warning-line);
+  --color-danger: var(--c-danger);
+  --color-danger-soft: var(--c-danger-soft);
+  --color-danger-line: var(--c-danger-line);
+  --color-danger-text: var(--c-danger-text);
+  --color-info: var(--c-info);
+  --color-info-soft: var(--c-info-soft);
+  --color-info-line: var(--c-info-line);
+
+  --color-overlay: var(--c-overlay);
+
+  /* Fitted to the reference site: ~35% at 0.1s, 75% at 0.3s, 89% at 0.5s of a 1.2s slide */
+  --ease-slide: cubic-bezier(0.25, 1, 0.5, 1);
+
+  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-pop: 0 10px 28px rgb(16 24 40 / 0.16);
+
+  --animate-fade-up: fade-up 0.25s ease-out both;
+  --animate-modal-in: modal-in 0.18s ease-out both;
+  /* Filter tab slides open from the page edge on load, pushing the toolbar buttons aside */
+  /* "backwards", not "both": a held animation would override the width transition used when the panel opens */
+  --animate-tab-open: tab-open 0.7s cubic-bezier(0.25, 1, 0.5, 1) backwards;
 }
 
-/* Cards get a faint gold outline in dark Ramadan */
-[data-ramadan="true"].dark .card,
-[data-ramadan="true"].dark .interactive-card {
-  box-shadow: 0 0 0 1px rgba(212, 168, 32, 0.09);
-}
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Datepicker placeholder fix
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-.datepicker-input::placeholder {
-  color: var(--text-muted);
-  opacity: 1;
-}
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Base
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-*, *::before, *::after { box-sizing: border-box; }
-
-body {
-  background-color: var(--bg-base);
-  color: var(--text-primary);
-  font-family: 'Tajawal', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  line-height: 1.5;
-}
-
-/* Smooth theme transitions */
-body {
-  transition: background-color 160ms ease, color 160ms ease;
-}
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Button — global base + hover/active states
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-button {
-  font-family: inherit;
-  border: none;
-  outline: none;
-}
-button:not(:disabled) {
-  cursor: pointer;
-  transition: filter 0.14s ease, transform 0.10s ease, box-shadow 0.14s ease;
-}
-button:not(:disabled):hover  { filter: brightness(0.94); }
-button:not(:disabled):active { filter: brightness(0.82); transform: scale(0.97); }
-
-/* Focus ring for accessibility */
-button:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-/* ── Reusable button classes ── */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.375rem;
-  font-weight: 600;
-  border-radius: 0.5rem;
-  transition: filter 0.14s ease, transform 0.10s ease, background-color 0.14s ease;
-  white-space: nowrap;
-}
-.btn-sm  { font-size: 0.8125rem; padding: 0.375rem 0.875rem; }
-.btn-md  { font-size: 0.875rem;  padding: 0.5rem  1rem;      }
-.btn-lg  { font-size: 0.9375rem; padding: 0.625rem 1.25rem;  }
-
-/* Primary */
-.btn-primary {
-  background: var(--accent);
-  color: var(--accent-text);
-}
-.btn-primary:hover { background: var(--accent-hover); }
-/* Secondary */
-.btn-secondary {
-  background: var(--bg-subtle);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-default);
-}
-/* Ghost / text-style */
-.btn-ghost {
-  background: transparent;
-  color: var(--accent);
-}
-.btn-ghost:hover { background: var(--accent-light) !important; }
-
-/* Danger */
-.btn-danger {
-  background: var(--danger-bg);
-  color: var(--danger);
-  border: 1px solid var(--danger-border);
-}
-/* Success */
-.btn-success {
-  background: var(--success);
-  color: #fff;
-}
-/* Accent-light (edit style) */
-.btn-accent-light {
-  background: var(--accent-light);
-  color: var(--accent);
-}
-
-/* Disabled */
-button:disabled { opacity: 0.5; cursor: not-allowed; }
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Input / Textarea / Select — global Claude style
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
-textarea,
-select {
-  font-family: inherit;
-  font-size: 0.875rem;
-  background: var(--bg-input);
-  color: var(--text-primary);
-  border: 1px solid var(--border-default);
-  border-radius: 0.5rem;
-  padding: 0.5625rem 0.75rem;
-  width: 100%;
-  outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-  -webkit-appearance: none;
-}
-select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239b948c' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.75rem center;
-  padding-right: 2.25rem;
-  cursor: pointer;
-}
-[dir="rtl"] select {
-  background-position: left 0.75rem center;
-  padding-right: 0.75rem;
-  padding-left: 2.25rem;
-}
-select option {
-  background: var(--bg-surface);
-  color: var(--text-primary);
-}
-input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
-textarea:focus,
-select:focus {
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
-}
-input::placeholder,
-textarea::placeholder { color: var(--text-muted); opacity: 1; }
-
-/* file input */
-input[type="file"] {
-  font-family: inherit;
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  background: var(--bg-subtle);
-  border: 1px solid var(--border-default);
-  border-radius: 0.5rem;
-  padding: 0.4rem 0.75rem;
-  width: 100%;
-  cursor: pointer;
-}
-input[type="file"]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
-
-/* number input — hide spin arrows */
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-input[type="number"] { -moz-appearance: textfield; }
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Label
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-label {
-  display: block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  margin-bottom: 0.375rem;
-  letter-spacing: 0.01em;
-}
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Modal animation
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-@keyframes modalIn {
-  from { opacity: 0; transform: scale(0.95) translateY(8px); }
-  to   { opacity: 1; transform: scale(1)    translateY(0);   }
-}
-.modal-enter {
-  animation: modalIn 0.18s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
-}
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Card — base shadow
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-.card {
-  box-shadow: var(--shadow-sm);
-  transition: box-shadow 0.2s, border-color 0.2s;
-}
-.dark .card { box-shadow: var(--shadow-sm); }
-
-/* Interactive list items */
-.interactive-card {
-  box-shadow: var(--shadow-xs);
-  transition: box-shadow 0.18s ease, border-color 0.18s ease, transform 0.15s ease;
-}
-.interactive-card:hover {
-  box-shadow: var(--shadow-md);
-  border-color: var(--border-default) !important;
-  transform: translateY(-1px);
-}
-.interactive-card:active { transform: translateY(0); }
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Badge / status pill
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  padding: 0.1875rem 0.5rem;
-  border-radius: 999px;
-  border: 1px solid transparent;
-  white-space: nowrap;
-}
-.badge-success { background: var(--success-bg); color: var(--success); border-color: var(--success-border); }
-.badge-warning { background: var(--warning-bg); color: var(--warning); border-color: var(--warning-border); }
-.badge-danger  { background: var(--danger-bg);  color: var(--danger);  border-color: var(--danger-border);  }
-.badge-accent  { background: var(--accent-light); color: var(--accent); }
-.badge-muted   { background: var(--bg-subtle); color: var(--text-muted); }
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Divider
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-hr, .divider {
-  border: none;
-  border-top: 1px solid var(--border-subtle);
-  margin: 0;
-}
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Scrollbar
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-::-webkit-scrollbar          { width: 5px; height: 5px; }
-::-webkit-scrollbar-track    { background: transparent; }
-::-webkit-scrollbar-thumb    { background: var(--border-default); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Animations
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-a { transition: opacity 0.15s, color 0.15s; }
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(8px); }
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.page-enter { animation: fadeUp 0.28s ease-out both; }
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+/* No "to": the tab grows to its own (class) width */
+@keyframes tab-open {
+  from { width: 8.5rem; }
 }
-.nav-label { animation: fadeIn 0.18s 0.08s ease-out both; }
-
-@keyframes overlayFadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+@keyframes modal-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
-@keyframes panelSlideIn {
+@keyframes slide-in {
   from { transform: translateX(-100%); }
   to   { transform: translateX(0); }
 }
-@keyframes panelSlideInRTL {
+@keyframes slide-in-rtl {
   from { transform: translateX(100%); }
   to   { transform: translateX(0); }
 }
-.mobile-overlay       { animation: overlayFadeIn 0.2s ease-out both; }
-.mobile-sidebar-panel { animation: panelSlideIn 0.24s cubic-bezier(0.4,0,0.2,1) both; }
-[dir="rtl"] .mobile-sidebar-panel { animation: panelSlideInRTL 0.24s cubic-bezier(0.4,0,0.2,1) both; }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Sidebar
+   Base element styles — every form control looks the same without extra classes
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-.sidebar-collapse-btn {
-  position: absolute;
-  top: 4rem;
-  z-index: 20;
-  inset-inline-end: -10px;
+@layer base {
+  body {
+    @apply bg-page text-body font-sans antialiased;
+    line-height: 1.5;
+  }
+
+  button:not(:disabled) { cursor: pointer; }
+  button:disabled { cursor: not-allowed; }
+
+  :focus-visible { @apply outline-2 outline-offset-2 outline-primary; }
+
+  label { @apply mb-1.5 block text-sm font-semibold text-title; }
+
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  textarea,
+  select {
+    @apply min-h-13 w-full rounded-md border border-input-line bg-input px-3 py-2.5 text-[13px] font-semibold text-title
+           placeholder:text-[13px] placeholder:font-normal placeholder:text-muted transition-colors
+           hover:border-primary-hover
+           focus:border-primary focus:outline-none focus:ring-3 focus:ring-primary/20
+           disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  input[type="file"] {
+    @apply w-full cursor-pointer rounded-md border border-input-line bg-input text-sm text-body
+           file:me-3 file:cursor-pointer file:border-0 file:border-e file:border-line
+           file:bg-band file:px-3 file:py-2 file:text-sm file:font-semibold file:text-heading;
+  }
+
+  /* Hide number spinners */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type="number"] { -moz-appearance: textfield; }
+
+  /* Hairline scrollbars (3px); Firefox gets its thinnest native one below */
+  ::-webkit-scrollbar { width: 3px; height: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { @apply rounded-full bg-line-strong; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-primary; }
 }
 
-.page-frame { padding-top: 0.5rem; }
+@supports not selector(::-webkit-scrollbar) {
+  html { scrollbar-width: thin; scrollbar-color: var(--c-line-strong) transparent; }
+}
+
+/* Unlayered on purpose: these state overrides must win over component utility classes. */
+
+/* Read-only fields (e.g. status on a details page) are gray and not focus-highlighted */
+:is(input, textarea)[readonly]:not(.cursor-pointer) { @apply cursor-default border-line bg-band text-muted focus:border-line focus:ring-0; }
+
+/* Filter panel fields use light outlines on the gray panel */
+.filter-panel :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), textarea, select),
+.filter-panel button[aria-haspopup="listbox"] {
+  @apply border-line hover:border-line-strong focus:border-primary;
+}
+
+/* Branded scrollbar for panels and dropdown lists (filter panel, selects, sidebar, dialogs): hairline, pale track, brand thumb */
+/* Standard properties only where ::-webkit-scrollbar is unsupported (Firefox); in Chrome they would disable the styling below */
+@supports not selector(::-webkit-scrollbar) {
+  .brand-scroll { scrollbar-width: thin; scrollbar-color: var(--c-primary-dark) var(--c-primary-soft); }
+}
+.brand-scroll::-webkit-scrollbar { width: 3px; }
+.brand-scroll::-webkit-scrollbar-track { background: var(--c-primary-soft); border-radius: 999px; margin: 0.5rem 0; }
+.brand-scroll::-webkit-scrollbar-thumb { background: var(--c-primary-dark); border-radius: 999px; }
+.brand-scroll::-webkit-scrollbar-thumb:hover { background: var(--c-primary); }
+
+/* Invalid fields (wrapper has data-invalid="true"): red outline and placeholder */
+[data-invalid="true"] :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), textarea, select),
+[data-invalid="true"] button[aria-haspopup="listbox"] {
+  @apply border-danger placeholder:text-danger-text/80 hover:border-danger focus:border-danger focus:ring-danger/20;
+}
+
+/* Page entrance: each top-level block fades up in sequence */
+.page-stagger > * { animation: fade-up 0.6s cubic-bezier(0.25, 1, 0.5, 1) both; }
+/* The title row (buttons + Filter tab) doesn't fade: only the tab grows, as on the reference */
+.page-stagger > .page-static { animation: none; }
+.page-stagger > :nth-child(2) { animation-delay: 90ms; }
+.page-stagger > :nth-child(3) { animation-delay: 180ms; }
+.page-stagger > :nth-child(4) { animation-delay: 270ms; }
+.page-stagger > :nth-child(n + 5) { animation-delay: 360ms; }
+@media (prefers-reduced-motion: reduce) {
+  .page-stagger > * { animation: none; }
+}
+
+/* Mobile sidebar slides in from the start edge */
+.animate-slide-in-start { animation: slide-in 0.22s ease-out both; }
+[dir="rtl"] .animate-slide-in-start { animation: slide-in-rtl 0.22s ease-out both; }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Page header block (title container)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-.page-header {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: 0.875rem;
-  padding: 1.125rem 1.5rem;
-  margin-bottom: 1.5rem;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  box-shadow: var(--shadow-sm);
-}
-.page-header h2 {
-  font-size: 1.375rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-}
-.page-header p {
-  font-size: 0.8125rem;
-  color: var(--text-muted);
-  margin: 0.2rem 0 0;
-}
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Form panel
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-.form-panel {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: 0.875rem;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: var(--shadow-sm);
-}
-.form-panel h3 {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 1.25rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   React-datepicker theming
+   react-datepicker — third-party markup, themed with the same tokens
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 .react-datepicker-wrapper { width: 100%; }
-
-/* Calendar popup */
 .react-datepicker {
   font-family: inherit !important;
-  background-color: var(--bg-surface) !important;
-  border: 1px solid var(--border-default) !important;
-  border-radius: 0.875rem !important;
-  box-shadow: var(--shadow-lg) !important;
-  color: var(--text-primary) !important;
-  overflow: hidden;
-  padding: 0.25rem;
+  background-color: var(--c-surface) !important;
+  border: 1px solid var(--c-line) !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 10px 28px rgb(16 24 40 / 0.16) !important;
+  color: var(--c-title) !important;
+  padding: 0.75rem 0.75rem 0.5rem;
 }
-
-/* Hide the default arrow */
 .react-datepicker__triangle { display: none !important; }
-
-/* Month container */
-.react-datepicker__month-container { float: none !important; }
-
-/* Header */
 .react-datepicker__header {
-  background-color: var(--bg-surface) !important;
-  border-bottom: 1px solid var(--border-subtle) !important;
-  border-radius: 0 !important;
-  padding: 0.75rem 0.5rem 0.5rem !important;
+  background-color: transparent !important;
+  border-bottom: 0 !important;
+  padding: 0.25rem 0 0 !important;
 }
-.react-datepicker__current-month {
-  color: var(--text-primary) !important;
-  font-weight: 700 !important;
-  font-size: 0.875rem !important;
-  margin-bottom: 0.5rem;
-}
-.react-datepicker__day-names { margin-bottom: 0 !important; }
+.react-datepicker__day-names { margin-bottom: 0.25rem !important; }
 .react-datepicker__day-name {
-  color: var(--text-muted) !important;
-  font-weight: 600 !important;
-  font-size: 0.6875rem !important;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  width: 2rem !important;
-  line-height: 1.75rem !important;
+  color: var(--c-title) !important;
+  font-weight: 500 !important;
+  font-size: 0.9375rem !important;
+  width: 2.5rem !important;
+  line-height: 2.25rem !important;
+  margin: 0.15rem !important;
 }
-
-/* Navigation arrows */
-.react-datepicker__navigation {
-  top: 0.75rem !important;
-}
-.react-datepicker__navigation-icon::before {
-  border-color: var(--text-secondary) !important;
-  border-width: 2px 2px 0 0 !important;
-  width: 7px !important;
-  height: 7px !important;
-}
-.react-datepicker__navigation:hover .react-datepicker__navigation-icon::before {
-  border-color: var(--accent) !important;
-}
-
-/* Day cells */
-.react-datepicker__month { margin: 0.375rem 0.25rem 0.25rem !important; }
+.react-datepicker__month { margin: 0 !important; }
 .react-datepicker__day {
-  color: var(--text-primary) !important;
+  color: var(--c-title) !important;
   border-radius: 0.5rem !important;
-  width: 2rem !important;
-  line-height: 2rem !important;
-  font-size: 0.8125rem !important;
-  transition: background 0.12s, color 0.12s !important;
-  margin: 0.1rem !important;
+  width: 2.5rem !important;
+  line-height: 2.5rem !important;
+  font-size: 0.9375rem !important;
+  margin: 0.15rem !important;
+  transition: background-color 0.15s, color 0.15s !important;
 }
-.react-datepicker__day:hover {
-  background-color: var(--accent-light) !important;
-  color: var(--accent) !important;
+.react-datepicker__day:hover { background-color: var(--c-hover) !important; color: var(--c-title) !important; }
+.react-datepicker__day--keyboard-selected { background-color: var(--c-hover) !important; color: var(--c-title) !important; }
+/* Today: solid orange; selected: dark brand blue (selected wins when both) */
+.react-datepicker__day--today { background-color: var(--c-accent) !important; color: var(--c-on-primary) !important; font-weight: 600 !important; }
+.react-datepicker__day--selected { background-color: var(--c-primary-dark) !important; color: var(--c-on-primary) !important; font-weight: 600 !important; }
+/* Month grid (3 × 4) and year grid (4 × 3) */
+.react-datepicker__monthPicker, .react-datepicker__year { margin: 0 !important; }
+.react-datepicker__month-wrapper { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 0.5rem; }
+.react-datepicker__year-wrapper { display: grid !important; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; max-width: none !important; }
+.react-datepicker__month-text,
+.react-datepicker__year-text {
+  width: auto !important;
+  margin: 0 !important;
+  padding: 0.6rem 0.75rem !important;
+  border-radius: 0.5rem !important;
+  color: var(--c-body) !important;
+  font-size: 1rem !important;
+  transition: background-color 0.15s, color 0.15s !important;
 }
-.react-datepicker__day--selected {
-  background-color: var(--accent) !important;
-  color: #fff !important;
-  font-weight: 700 !important;
-}
-.react-datepicker__day--keyboard-selected {
-  background-color: var(--accent-light) !important;
-  color: var(--accent) !important;
-  font-weight: 600 !important;
-}
-.react-datepicker__day--today:not(.react-datepicker__day--selected) {
-  font-weight: 700 !important;
-  color: var(--accent) !important;
-}
-.react-datepicker__day--outside-month {
-  color: var(--text-muted) !important;
-  opacity: 0.5;
-}
-.react-datepicker__day--disabled {
-  color: var(--text-muted) !important;
-  opacity: 0.35;
-  cursor: not-allowed !important;
-}
+.react-datepicker__month-text:hover,
+.react-datepicker__year-text:hover { background-color: var(--c-hover) !important; color: var(--c-title) !important; }
+/* The month/year being viewed (and any selected one) is solid dark blue */
+.react-datepicker__month-text--keyboard-selected,
+.react-datepicker__year-text--keyboard-selected,
+.react-datepicker__month-text--selected, .react-datepicker__month--selected,
+.react-datepicker__year-text--selected { background-color: var(--c-primary-dark) !important; color: var(--c-on-primary) !important; }
+.react-datepicker__month-text--today, .react-datepicker__year-text--today { font-weight: 600 !important; }
 
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Ramadan banner — twinkling stars
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-@keyframes ramadanTwinkle {
-  0%, 100% { opacity: 0.85; r: var(--star-r, 1); }
-  50%       { opacity: 0.15; }
+/* Days from neighbouring months are left blank */
+.react-datepicker__day--outside-month { visibility: hidden; }
+.react-datepicker__day--disabled { color: var(--c-muted) !important; opacity: 0.4; cursor: not-allowed !important; }
+/* Popper is portalled to <body> so modals and cards can't clip it */
+.react-datepicker-popper { z-index: 70 !important; }
+
+/* Ramadan banner twinkling stars */
+@keyframes ramadan-twinkle {
+  0%, 100% { opacity: 0.85; }
+  50%      { opacity: 0.15; }
 }
-.ramadan-star {
-  animation: ramadanTwinkle 2.4s ease-in-out infinite;
-}
+.ramadan-star { animation: ramadan-twinkle 2.4s ease-in-out infinite; }

@@ -1,12 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="8" fill="#c96030"/>
-  <text
-    x="16" y="21.5"
-    text-anchor="middle"
-    fill="white"
-    font-family="Arial, Helvetica, sans-serif"
-    font-size="13"
-    font-weight="700"
-    letter-spacing="-0.5"
-  >PL</text>
+  <rect width="32" height="32" rx="3" fill="#165783"/>
+  <rect x="2.5" y="2.5" width="27" height="27" rx="1.5" fill="none" stroke="#fefefe" stroke-opacity=".7"/>
+  <rect x="4.5" y="4.5" width="23" height="23" fill="none" stroke="#fefefe" stroke-opacity=".4" stroke-width=".5"/>
+  <text x="16" y="20.5" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="13" font-weight="700" letter-spacing="-.5" fill="#fefefe">PL</text>
+  <rect x="11" y="23" width="10" height="1.2" fill="#fd7a41"/>
 </svg>

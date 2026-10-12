@@ -1,44 +1,34 @@
 import { create } from 'zustand';
 
+const STORAGE_KEY = 'theme';
+
 interface ThemeState {
   isDarkMode: boolean;
   toggleTheme: () => void;
-  initializeTheme: () => void;
 }
 
-export const useThemeStore = create<ThemeState>((set) => ({
-  isDarkMode: false,
+function readInitialTheme(): boolean {
+  // Saved preference first, then the OS setting
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) return saved === 'dark';
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
 
-  toggleTheme: () =>
-    set((state) => {
-      const newIsDarkMode = !state.isDarkMode;
+function applyTheme(isDarkMode: boolean) {
+  document.documentElement.classList.toggle('dark', isDarkMode);
+}
 
-      // Update localStorage
-      localStorage.setItem('theme', newIsDarkMode ? 'dark' : 'light');
+// Eagerly apply before React mounts (avoids flash-of-wrong-theme)
+const initial = readInitialTheme();
+applyTheme(initial);
 
-      // Update document class
-      if (newIsDarkMode) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
+export const useThemeStore = create<ThemeState>((set, get) => ({
+  isDarkMode: initial,
 
-      return { isDarkMode: newIsDarkMode };
-    }),
-
-  initializeTheme: () => {
-    // Check localStorage first, then system preference
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-    const isDarkMode = savedTheme === 'dark' || (!savedTheme && prefersDark);
-
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-
-    set({ isDarkMode });
+  toggleTheme: () => {
+    const next = !get().isDarkMode;
+    localStorage.setItem(STORAGE_KEY, next ? 'dark' : 'light');
+    applyTheme(next);
+    set({ isDarkMode: next });
   },
 }));

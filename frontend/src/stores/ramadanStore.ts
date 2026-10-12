@@ -1,15 +1,22 @@
 import { create } from 'zustand';
 
-const RAMADAN_START = new Date('2026-02-18T00:00:00');
-const RAMADAN_END   = new Date('2026-03-19T23:59:59');
-const STORAGE_KEY   = 'ramadan-enabled';
+const STORAGE_KEY = 'ramadan-enabled';
+
+/** True when today falls in Ramadan (month 9) of the Umm al-Qura Islamic calendar. */
+function isRamadanToday(): boolean {
+  try {
+    const month = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { month: 'numeric' }).format(new Date());
+    return parseInt(month, 10) === 9;
+  } catch {
+    return false; // Calendar not supported by this browser
+  }
+}
 
 function defaultEnabled(): boolean {
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored !== null) return stored === 'true';
-  // Auto-enable during Ramadan 1447 if user has never set a preference
-  const now = new Date();
-  return now >= RAMADAN_START && now <= RAMADAN_END;
+  // Auto-enable during Ramadan if the user has never set a preference
+  return isRamadanToday();
 }
 
 interface RamadanState {
