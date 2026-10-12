@@ -1,45 +1,64 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useEffect } from 'react';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
-import TasksPage from './pages/TasksPage';
-import BillsPage from './pages/BillsPage';
-import JournalPage from './pages/JournalPage';
-import ReceiptsPage from './pages/ReceiptsPage';
-import TransactionsPage from './pages/TransactionsPage';
-import ProfilePage from './pages/ProfilePage';
+import { lazy, Suspense, useEffect } from 'react';
+import { PageLoader } from './components/ui/Spinner';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
+import { GuestRoute } from './components/layout/GuestRoute';
 import { useAuthStore } from './stores/authStore';
-import { useThemeStore } from './stores/themeStore';
 import { ToastProvider } from './components/ui/Toast';
+
+// Each page is its own chunk, so e.g. the charts library only loads with the dashboard
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const TasksPage = lazy(() => import('./pages/TasksPage'));
+const BillsPage = lazy(() => import('./pages/BillsPage'));
+const JournalPage = lazy(() => import('./pages/JournalPage'));
+const ReceiptsPage = lazy(() => import('./pages/ReceiptsPage'));
+const TransactionsPage = lazy(() => import('./pages/TransactionsPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+// "new" and details pages: /section/new creates a record, /section/:id shows it, editable
+const TaskFormPage = lazy(() => import('./pages/TaskFormPage'));
+const BillFormPage = lazy(() => import('./pages/BillFormPage'));
+const JournalFormPage = lazy(() => import('./pages/JournalFormPage'));
+const ReceiptFormPage = lazy(() => import('./pages/ReceiptFormPage'));
+const TransactionFormPage = lazy(() => import('./pages/TransactionFormPage'));
 
 const queryClient = new QueryClient();
 
 function AppRoutes() {
   const initialize = useAuthStore((state) => state.initialize);
-  const initializeTheme = useThemeStore((state) => state.initializeTheme);
 
   useEffect(() => {
     initialize();
-    initializeTheme();
-  }, [initialize, initializeTheme]);
+  }, [initialize]);
 
   return (
+    <Suspense fallback={<PageLoader />}>
     <Routes>
-      <Route path="/login"    element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/login"    element={<GuestRoute><LoginPage /></GuestRoute>} />
+      <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
       <Route path="/dashboard"     element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/tasks"         element={<ProtectedRoute><TasksPage /></ProtectedRoute>} />
       <Route path="/bills"         element={<ProtectedRoute><BillsPage /></ProtectedRoute>} />
       <Route path="/journal"       element={<ProtectedRoute><JournalPage /></ProtectedRoute>} />
       <Route path="/receipts"      element={<ProtectedRoute><ReceiptsPage /></ProtectedRoute>} />
       <Route path="/transactions"  element={<ProtectedRoute><TransactionsPage /></ProtectedRoute>} />
+      <Route path="/tasks/new"            element={<ProtectedRoute><TaskFormPage /></ProtectedRoute>} />
+      <Route path="/tasks/:id"            element={<ProtectedRoute><TaskFormPage /></ProtectedRoute>} />
+      <Route path="/bills/new"            element={<ProtectedRoute><BillFormPage /></ProtectedRoute>} />
+      <Route path="/bills/:id"            element={<ProtectedRoute><BillFormPage /></ProtectedRoute>} />
+      <Route path="/journal/new"          element={<ProtectedRoute><JournalFormPage /></ProtectedRoute>} />
+      <Route path="/journal/:id"          element={<ProtectedRoute><JournalFormPage /></ProtectedRoute>} />
+      <Route path="/receipts/new"         element={<ProtectedRoute><ReceiptFormPage /></ProtectedRoute>} />
+      <Route path="/receipts/:id"         element={<ProtectedRoute><ReceiptFormPage /></ProtectedRoute>} />
+      <Route path="/transactions/new"     element={<ProtectedRoute><TransactionFormPage /></ProtectedRoute>} />
+      <Route path="/transactions/:id"     element={<ProtectedRoute><TransactionFormPage /></ProtectedRoute>} />
       <Route path="/profile"       element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
       <Route path="/"   element={<Navigate to="/dashboard" replace />} />
       <Route path="*"   element={<Navigate to="/dashboard" replace />} />
     </Routes>
+    </Suspense>
   );
 }
 
