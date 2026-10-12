@@ -14,7 +14,6 @@ const applyDir = (lng: string) => {
 const savedLang = localStorage.getItem('lang') ?? 'en';
 applyDir(savedLang);
 
-// No LanguageDetector — we manage language manually via localStorage
 i18n
   .use(initReactI18next)
   .init({
