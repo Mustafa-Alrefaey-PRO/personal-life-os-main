@@ -30,7 +30,8 @@ Dependencies point inward: `API → Infrastructure → Application → Domain`. 
 
 ### Authentication
 - ASP.NET Identity with `ApplicationUser`; JWT Bearer tokens from `JwtTokenService` using `JwtSettings` (issuer, audience, 60-minute expiry).
-- Register returns 409 if the email exists; login returns 401 for bad credentials and 423 after 5 failed attempts (5-minute lockout).
+- Users have a unique username (3–32 letters, digits, `.`, `_`, `-`; stored lowercase) and sign in with the username or the email. Register returns 409 if the username or email exists; login returns 401 for bad credentials and 423 after 5 failed attempts (5-minute lockout).
+- Signed-in users edit their name, username and email (`PUT /api/auth/profile`) and change their password (`POST /api/auth/change-password`, current password required; wrong guesses count toward the lockout). Both return a fresh token. Accounts created before usernames got the part of their email before the "@" (migration `GiveUsersUserNames`).
 
 ### Receipt images
 - Stored through `IFileStorage`: `LocalFileStorage` (default, `PersonalLifeOS.API/App_Data/receipts`, outside the web root) or private Google Drive (`Storage:Provider = GoogleDrive`).
@@ -41,7 +42,7 @@ All except auth require a Bearer token.
 
 | Area | Endpoints |
 |---|---|
-| Auth | `POST /api/auth/register`, `POST /api/auth/login` |
+| Auth | `POST /api/auth/register`, `POST /api/auth/login`, `PUT /api/auth/profile`, `POST /api/auth/change-password` |
 | Dashboard | `GET /api/dashboard` |
 | Tasks | `GET, POST /api/tasks` · `GET, PUT, DELETE /api/tasks/{id}` · `POST /api/tasks/{id}/complete`, `/uncomplete` |
 | Bills | `GET, POST /api/bills` · `GET, PUT, DELETE /api/bills/{id}` · `POST /api/bills/{id}/pay`, `/unpay` |
@@ -71,7 +72,7 @@ All tables also have `UserId`, `StatusCode` and the audit fields; Identity adds 
 
 ```
 frontend/src
-├── pages/            List pages (TasksPage…), form pages (TaskFormPage…), Dashboard, Profile, Login, Register
+├── pages/            List pages (TasksPage…), form pages (TaskFormPage…), Dashboard, Profile, EditProfile, ChangePassword, Login, Register
 ├── components/
 │   ├── layout/       MainLayout (sidebar, top bar), AuthLayout, ProtectedRoute, GuestRoute
 │   ├── ui/           Shared components — see DESIGN-SYSTEM.md

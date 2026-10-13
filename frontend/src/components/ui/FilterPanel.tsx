@@ -33,7 +33,7 @@ export function FilterToggle({ open, onToggle, activeCount }: FilterToggleProps)
         onClick={onToggle}
         tabIndex={-1}
         // Width animates between two fixed values so the tab opens in one smooth motion
-        className={`flex h-13 max-w-[calc(100vw-2rem)] animate-tab-open items-center justify-between gap-4 overflow-hidden rounded-s-xl border border-e-0 border-line bg-surface ps-6 pe-4 text-sm whitespace-nowrap text-title transition-[width,background-color] duration-[1200ms] ease-slide hover:bg-hover sm:pe-6 lg:pe-8 ${
+        className={`flex h-10 max-w-[calc(100vw-2rem)] animate-tab-open items-center justify-between gap-4 overflow-hidden rounded-s-xl border border-e-0 border-line bg-surface ps-6 pe-4 text-sm whitespace-nowrap text-title transition-[width,background-color] duration-[1200ms] ease-slide hover:bg-hover sm:pe-6 lg:pe-8 ${
           open ? 'w-[22rem]' : 'w-[12.5rem]'
         }`}
       >

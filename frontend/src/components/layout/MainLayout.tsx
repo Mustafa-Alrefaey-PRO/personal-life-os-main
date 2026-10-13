@@ -1,14 +1,13 @@
-import { useEffect, useState } from 'react';
-import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useQueryClient } from '@tanstack/react-query';
-import { useAuthStore } from '../../stores/authStore';
 import { useSidebarStore } from '../../stores/sidebarStore';
 import { DarkModeToggle } from '../ui/DarkModeToggle';
 import { RamadanBanner } from '../ui/RamadanBanner';
 import { Icon, type IconName } from '../ui/Icon';
 import { Logo } from '../ui/Logo';
 import { LanguageMenu } from '../ui/LanguageMenu';
+import { AccountMenu } from '../ui/AccountMenu';
 import { SITE } from '../../config/site';
 
 interface MainLayoutProps { children: React.ReactNode }
@@ -63,35 +62,6 @@ function SidebarNav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?
   );
 }
 
-function UserMenu() {
-  const { t } = useTranslation();
-  const { user, logout } = useAuthStore();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const initial = user?.fullName?.charAt(0)?.toUpperCase() ?? 'U';
-
-  const handleLogout = () => { queryClient.clear(); logout(); navigate('/login', { replace: true }); };
-
-  return (
-    <div className="flex h-16 items-center gap-3 border-s border-line ps-4">
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-line-strong bg-band text-sm font-bold text-title">{initial}</span>
-      <div className="hidden min-w-0 leading-tight sm:block">
-        <p className="max-w-40 truncate text-sm font-semibold text-title">{user?.fullName}</p>
-        <p className="max-w-40 truncate text-xs text-muted">{user?.email}</p>
-      </div>
-      <button
-        type="button"
-        onClick={handleLogout}
-        title={t('nav.logout')}
-        aria-label={t('nav.logout')}
-        className="inline-flex size-10 items-center justify-center rounded-md text-title transition-colors duration-150 hover:bg-danger-soft hover:text-danger"
-      >
-        <Icon name="logout" className="size-4 rtl:rotate-180" />
-      </button>
-    </div>
-  );
-}
-
 export const MainLayout = ({ children }: MainLayoutProps) => {
   const location = useLocation();
   const { t, i18n } = useTranslation();
@@ -109,8 +79,23 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
     return () => { window.removeEventListener('resize', apply); root.style.removeProperty('--content-start'); };
   }, [collapsed]);
 
+  // Switching language moves the sidebar to the other side. The content column then glides
+  // from where it was to its new place (0.4s, the same motion as ConstructERP) instead of jumping.
+  const contentRef = useRef<HTMLDivElement>(null);
+  const previousLanguage = useRef(i18n.language);
+  useEffect(() => {
+    if (previousLanguage.current === i18n.language) return;
+    previousLanguage.current = i18n.language;
+    const el = contentRef.current;
+    if (!el || window.innerWidth < 768 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const sidebar = collapsed ? 80 : 278;
+    // Now RTL: the content was further right (the sidebar was on the left), so it starts there.
+    const from = isRTL ? sidebar : -sidebar;
+    el.animate([{ transform: `translateX(${from}px)` }, { transform: 'none' }], { duration: 400, easing: 'cubic-bezier(0.25, 0.8, 0.25, 1)' });
+  }, [i18n.language, isRTL, collapsed]);
+
   return (
-    <div className="flex min-h-screen bg-page text-body">
+    <div className="flex min-h-screen overflow-x-clip bg-page text-body">
       {/* Desktop sidebar. z-[45] keeps its edge toggle above the content area (sticky creates its own layer) */}
       <aside className={`group/sidebar sticky top-0 z-[45] hidden h-screen shrink-0 flex-col border-e border-sidebar-line bg-sidebar transition-[width] duration-200 ease-linear md:flex ${collapsed ? 'w-20' : 'w-[278px]'}`}>
         <Brand collapsed={collapsed} />
@@ -141,7 +126,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
         </div>
       )}
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div ref={contentRef} className="flex min-w-0 flex-1 flex-col">
         {/* Top bar */}
         <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between gap-3 bg-surface px-4 sm:px-6">
           {/* Mobile only: opens the drawer (desktop uses the round toggle on the sidebar edge) */}
@@ -157,7 +142,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
           <div className="flex items-center gap-2">
             <LanguageMenu />
             <DarkModeToggle />
-            <UserMenu />
+            <AccountMenu />
           </div>
         </header>
 

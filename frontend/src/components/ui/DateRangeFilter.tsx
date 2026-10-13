@@ -18,7 +18,7 @@ export function DateRangeFilter({ from, to, onFromChange, onToChange }: DateRang
       <span className="text-sm font-medium text-title">{t('common.dateTo')}</span>
       <div className="w-40"><AppDatePicker value={to} onChange={onToChange} placeholder={t('common.dateTo')} /></div>
       {(from || to) && (
-        <Button variant="secondary" size="sm" icon="x" onClick={() => { onFromChange(''); onToChange(''); }}>
+        <Button variant="secondary" icon="x" onClick={() => { onFromChange(''); onToChange(''); }}>
           {t('common.clearFilters')}
         </Button>
       )}

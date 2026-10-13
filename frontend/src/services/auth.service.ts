@@ -1,5 +1,5 @@
 import api from './api';
-import type { LoginRequest, RegisterRequest, AuthResponse } from '../types/auth';
+import type { LoginRequest, RegisterRequest, ChangePasswordRequest, UpdateProfileRequest, AuthResponse, User } from '../types/auth';
 import type { ApiResponse } from '../types/api';
 
 /** Reads the JWT `exp` claim; malformed tokens count as expired. */
@@ -12,20 +12,23 @@ function isTokenExpired(token: string): boolean {
   }
 }
 
+/** Stores the token and user; the API's response is the only source of both. */
+function saveSession(auth: AuthResponse) {
+  localStorage.setItem('token', auth.token);
+  localStorage.setItem('user', JSON.stringify({
+    userName: auth.userName,
+    email: auth.email,
+    fullName: auth.fullName,
+    token: auth.token,
+  } satisfies User));
+}
+
 export const authService = {
   // Register a new user
   async register(data: RegisterRequest): Promise<ApiResponse<AuthResponse>> {
     const response = await api.post<ApiResponse<AuthResponse>>('/auth/register', data);
 
-    // If registration successful, save token and user data
-    if (response.data.success && response.data.data) {
-      localStorage.setItem('token', response.data.data.token);
-      localStorage.setItem('user', JSON.stringify({
-        email: response.data.data.email,
-        fullName: response.data.data.fullName,
-        token: response.data.data.token,
-      }));
-    }
+    if (response.data.success && response.data.data) saveSession(response.data.data);
 
     return response.data;
   },
@@ -34,16 +37,22 @@ export const authService = {
   async login(data: LoginRequest): Promise<ApiResponse<AuthResponse>> {
     const response = await api.post<ApiResponse<AuthResponse>>('/auth/login', data);
 
-    // If login successful, save token and user data
-    if (response.data.success && response.data.data) {
-      localStorage.setItem('token', response.data.data.token);
-      localStorage.setItem('user', JSON.stringify({
-        email: response.data.data.email,
-        fullName: response.data.data.fullName,
-        token: response.data.data.token,
-      }));
-    }
+    if (response.data.success && response.data.data) saveSession(response.data.data);
 
+    return response.data;
+  },
+
+  // Change the signed-in user's password; the API returns a fresh token
+  async changePassword(data: ChangePasswordRequest): Promise<ApiResponse<AuthResponse>> {
+    const response = await api.post<ApiResponse<AuthResponse>>('/auth/change-password', data);
+    if (response.data.success && response.data.data) saveSession(response.data.data);
+    return response.data;
+  },
+
+  // Update name, username and email; the API returns a fresh token with the new details
+  async updateProfile(data: UpdateProfileRequest): Promise<ApiResponse<AuthResponse>> {
+    const response = await api.put<ApiResponse<AuthResponse>>('/auth/profile', data);
+    if (response.data.success && response.data.data) saveSession(response.data.data);
     return response.data;
   },
 
@@ -65,8 +74,10 @@ export const authService = {
   },
 
   // Get current user from localStorage
-  getCurrentUser() {
+  getCurrentUser(): User | null {
     const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
+    if (!userStr) return null;
+    const user = JSON.parse(userStr) as Partial<User>;
+    return { userName: '', email: '', fullName: '', token: '', ...user };
   },
 };

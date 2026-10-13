@@ -7,7 +7,7 @@
     "receipts": "Receipts",
     "journal": "Journal",
     "profile": "Profile",
-    "logout": "Logout",
+    "logout": "Sign out",
     "expandSidebar": "Expand sidebar",
     "collapseSidebar": "Collapse sidebar",
     "menu": "Main menu",
@@ -29,7 +29,7 @@
     "registerLink": "Register",
     "loginLink": "Sign in",
     "passwordMismatch": "Passwords do not match",
-    "invalidCredentials": "Invalid email or password.",
+    "invalidCredentials": "Invalid username or password.",
     "serverError": "Unable to connect to the server. Please try again.",
     "fullNamePlaceholder": "Your name",
     "emailExists": "An account with this email already exists.",
@@ -37,7 +37,11 @@
     "registerFailed": "Registration failed. Please check your details.",
     "tagline": "Organize your tasks, bills and money in one place.",
     "loginSubtitle": "Sign in to continue to your dashboard.",
-    "registerSubtitle": "Create your account to get started."
+    "registerSubtitle": "Create your account to get started.",
+    "userName": "Username",
+    "userNameOrEmail": "Username or email",
+    "userNamePlaceholder": "e.g. mustafa",
+    "userNameTaken": "This username is already taken."
   },
   "dashboard": {
     "goodMorning": "Good morning",
@@ -257,7 +261,8 @@
       "teal": "Teal",
       "graphite": "Graphite",
       "burgundy": "Burgundy"
-    }
+    },
+    "userName": "Username"
   },
   "categories": {
     "placeholder": "Select category",
@@ -339,12 +344,29 @@
     "required": "Required",
     "invalidEmail": "Enter a valid email address",
     "amountPositive": "Must be greater than 0",
-    "passwordRules": "At least 6 characters, including a number"
+    "passwordRules": "At least 6 characters, including a number",
+    "userNameRules": "3–32 letters, digits, dots, underscores or hyphens"
   },
   "filters": {
     "title": "Filter",
     "clear": "Clear search fields",
     "keyword": "Keyword",
     "searchFilter": "Search / Filter"
+  },
+  "account": {
+    "menu": "Account",
+    "changePassword": "Change password",
+    "changePasswordHint": "Enter your current password, then choose a new one.",
+    "passwordSection": "Password",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "confirmNewPassword": "Confirm new password",
+    "passwordRule": "At least 6 characters, including a digit.",
+    "currentWrong": "The current password is incorrect.",
+    "sameAsCurrent": "Choose a password different from the current one.",
+    "changed": "Password changed",
+    "editProfile": "Edit profile",
+    "profileSaved": "Profile saved",
+    "myProfile": "My profile"
   }
 }

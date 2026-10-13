@@ -137,7 +137,7 @@ export function StatusMenu({ label, tone, options, loading, disabled }: StatusMe
         aria-haspopup="menu"
         aria-expanded={open}
         title={t('common.currentStatus')}
-        className={`inline-flex h-13 min-w-44 items-center justify-between gap-4 rounded-md px-4 text-base font-medium text-on-primary shadow-card transition-colors duration-150 disabled:opacity-70 ${toneFill[tone]}`}
+        className={`inline-flex h-10 min-w-44 items-center justify-between gap-4 rounded-md px-4 text-sm font-medium text-on-primary shadow-card transition-colors duration-150 disabled:opacity-70 ${toneFill[tone]}`}
       >
         {label}
         {loading ? <Spinner size="sm" className="border-current/30 border-t-current" />

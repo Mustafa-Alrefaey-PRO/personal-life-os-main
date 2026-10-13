@@ -4,9 +4,10 @@ namespace PersonalLifeOS.Application.DTOs;
 
 public class LoginDto
 {
+    /// <summary>A username, or an email (anything containing "@").</summary>
     [Required]
-    [EmailAddress]
-    public string Email { get; set; } = string.Empty;
+    [MaxLength(256)]
+    public string Login { get; set; } = string.Empty;
 
     [Required]
     public string Password { get; set; } = string.Empty;

@@ -5,6 +5,8 @@ import { Card } from '../components/ui/Card';
 import { Toggle } from '../components/ui/Toggle';
 import { Button } from '../components/ui/Button';
 import { BrandPicker } from '../components/ui/BrandPicker';
+import { useNavigate } from 'react-router-dom';
+import { LanguageMenu } from '../components/ui/LanguageMenu';
 import { useAuthStore } from '../stores/authStore';
 import { useThemeStore } from '../stores/themeStore';
 import { useRamadanStore } from '../stores/ramadanStore';
@@ -22,11 +24,11 @@ function SettingRow({ title, description, control }: { title: string; descriptio
 }
 
 export default function ProfilePage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const { isDarkMode, toggleTheme } = useThemeStore();
   const { enabled: ramadanEnabled, setEnabled: setRamadan } = useRamadanStore();
-  const isRTL = i18n.language === 'ar';
 
 
   return (
@@ -43,20 +45,25 @@ export default function ProfilePage() {
             </span>
             <div>
               <p className="text-base font-bold text-heading">{user?.fullName}</p>
-              <p className="text-sm text-muted">{user?.email}</p>
+              <p className="text-sm text-muted"><bdi>{user?.email}</bdi></p>
             </div>
           </div>
           <dl className="divide-y divide-line">
             {[
               [t('profile.fullName'), user?.fullName],
+              [t('profile.userName'), user?.userName ? `@${user.userName}` : undefined],
               [t('profile.email'), user?.email],
             ].map(([label, value]) => (
               <div key={label} className="flex justify-between gap-4 px-5 py-3">
                 <dt className="text-sm text-muted">{label}</dt>
-                <dd className="text-sm font-semibold text-heading">{value ?? t('common.na')}</dd>
+                <dd className="text-sm font-semibold text-heading"><bdi>{value || t('common.na')}</bdi></dd>
               </div>
             ))}
           </dl>
+          <div className="flex flex-wrap justify-end gap-3 border-t border-line px-5 py-4">
+            <Button variant="secondary" icon="key" onClick={() => navigate('/account/password')}>{t('account.changePassword')}</Button>
+            <Button icon="edit" onClick={() => navigate('/account/profile')}>{t('account.editProfile')}</Button>
+          </div>
         </Card>
 
         <Card title={t('profile.preferences')} padded={false}>
@@ -66,7 +73,7 @@ export default function ProfilePage() {
             <SettingRow title={t('profile.ramadanMode')} description={t('profile.ramadanModeDesc')}
               control={<Toggle checked={ramadanEnabled} onChange={setRamadan} label={t('profile.ramadanMode')} />} />
             <SettingRow title={t('profile.language')} description={t('profile.languageDesc')}
-              control={<Button variant="secondary" size="sm" icon="globe" onClick={() => i18n.changeLanguage(isRTL ? 'en' : 'ar')}>{isRTL ? 'English' : 'العربية'}</Button>} />
+              control={<LanguageMenu />} />
           </div>
         </Card>
 

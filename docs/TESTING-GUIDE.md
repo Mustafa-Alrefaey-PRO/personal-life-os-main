@@ -40,6 +40,9 @@ cd frontend && npm run lint && npm run build
 - [ ] After login, pressing Back does not show the login form; visiting `/login` redirects to the dashboard
 - [ ] Logout returns to the login page; Back does not reopen the dashboard
 - [ ] Theme and language toggles work on the login and register pages
+- [ ] Sign in works with the username and with the email; register asks for a username and refuses a taken one
+- [ ] Account menu (top bar): My profile, Change password, Sign out. Profile → Edit profile saves name/username/email; Change password needs the current password, keeps you signed in, and the old password stops working
+- [ ] Every save/upload/status button shows its spinner for at least ~0.6s
 
 ### Tasks, bills, journal, transactions
 - [ ] "Add" opens the new page (`/tasks/new`…); saving returns to the list with a toast

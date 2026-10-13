@@ -8,13 +8,13 @@ import { Button } from '../components/ui/Button';
 import { AuthLayout } from '../components/layout/AuthLayout';
 import { AuthField } from '../components/ui/AuthField';
 import { FormError } from '../components/ui/FormError';
-import { compact, emailKey, requiredKey, type FieldErrors } from '../utils/validation';
+import { compact, emailKey, requiredKey, userNameKey, type FieldErrors } from '../utils/validation';
 
 export default function RegisterPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { setUser } = useAuthStore();
-  const [form, setForm] = useState({ email: '', password: '', confirmPassword: '', fullName: '' });
+  const [form, setForm] = useState({ userName: '', email: '', password: '', confirmPassword: '', fullName: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors<keyof typeof form>>({});
@@ -31,6 +31,7 @@ export default function RegisterPage() {
     const passwordKey = requiredKey(form.password) ?? (form.password.length >= 6 && /\d/.test(form.password) ? undefined : 'validation.passwordRules');
     const errs = compact({
       fullName: requiredKey(form.fullName),
+      userName: userNameKey(form.userName),
       email: emailKey(form.email),
       password: passwordKey,
       confirmPassword: requiredKey(form.confirmPassword) ?? (form.confirmPassword === form.password ? undefined : 'auth.passwordMismatch'),
@@ -39,16 +40,17 @@ export default function RegisterPage() {
     if (Object.keys(errs).length) return;
     setLoading(true);
     try {
-      const result = await authService.register(form);
+      const result = await authService.register({ ...form, userName: form.userName.trim() });
       if (result.success && result.data) {
-        setUser({ email: result.data.email, fullName: result.data.fullName, token: result.data.token });
+        setUser({ userName: result.data.userName, email: result.data.email, fullName: result.data.fullName, token: result.data.token });
         navigate('/dashboard', { replace: true });
       } else {
         setError(result.message || t('auth.registerFailed'));
       }
     } catch (err) {
       const status = getErrorStatus(err);
-      if (status === 409) setError(t('auth.emailExists'));
+      // 409: the username or the email is already in use; the server says which
+      if (status === 409) setError(getApiErrorMessage(err, '').toLowerCase().includes('username') ? t('auth.userNameTaken') : t('auth.emailExists'));
       // 400 carries the server's reason, e.g. a password rule from ASP.NET Identity
       else if (status === 400) setError(getApiErrorMessage(err, t('auth.registerFailed')));
       else setError(t('auth.serverError'));
@@ -72,6 +74,9 @@ export default function RegisterPage() {
         <AuthField label={t('auth.fullName')} type="text" icon="profile" value={form.fullName} autoComplete="name"
           onChange={(fullName) => update({ fullName })} placeholder={t('auth.fullNamePlaceholder')}
           error={fieldErrors.fullName && t(fieldErrors.fullName)} />
+        <AuthField label={t('auth.userName')} type="text" icon="at" value={form.userName} autoComplete="username"
+          onChange={(userName) => update({ userName })} placeholder={t('auth.userNamePlaceholder')}
+          error={fieldErrors.userName && t(fieldErrors.userName)} />
         <AuthField label={t('auth.email')} type="email" icon="mail" value={form.email} autoComplete="email"
           onChange={(email) => update({ email })} placeholder="you@example.com"
           error={fieldErrors.email && t(fieldErrors.email)} />

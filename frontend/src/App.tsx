@@ -17,6 +17,8 @@ const JournalPage = lazy(() => import('./pages/JournalPage'));
 const ReceiptsPage = lazy(() => import('./pages/ReceiptsPage'));
 const TransactionsPage = lazy(() => import('./pages/TransactionsPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const ChangePasswordPage = lazy(() => import('./pages/ChangePasswordPage'));
+const EditProfilePage = lazy(() => import('./pages/EditProfilePage'));
 // "new" and details pages: /section/new creates a record, /section/:id shows it, editable
 const TaskFormPage = lazy(() => import('./pages/TaskFormPage'));
 const BillFormPage = lazy(() => import('./pages/BillFormPage'));
@@ -55,6 +57,8 @@ function AppRoutes() {
       <Route path="/transactions/new"     element={<ProtectedRoute><TransactionFormPage /></ProtectedRoute>} />
       <Route path="/transactions/:id"     element={<ProtectedRoute><TransactionFormPage /></ProtectedRoute>} />
       <Route path="/profile"       element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+      <Route path="/account/profile"  element={<ProtectedRoute><EditProfilePage /></ProtectedRoute>} />
+      <Route path="/account/password" element={<ProtectedRoute><ChangePasswordPage /></ProtectedRoute>} />
       <Route path="/"   element={<Navigate to="/dashboard" replace />} />
       <Route path="*"   element={<Navigate to="/dashboard" replace />} />
     </Routes>

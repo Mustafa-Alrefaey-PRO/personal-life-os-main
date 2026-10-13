@@ -29,7 +29,7 @@
     "registerLink": "سجّل الآن",
     "loginLink": "تسجيل الدخول",
     "passwordMismatch": "كلمتا المرور غير متطابقتين",
-    "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+    "invalidCredentials": "اسم المستخدم أو كلمة المرور غير صحيحة.",
     "serverError": "تعذّر الاتصال بالخادم. حاول مجدداً.",
     "fullNamePlaceholder": "اسمك",
     "emailExists": "يوجد حساب مسجّل بهذا البريد الإلكتروني بالفعل.",
@@ -37,7 +37,11 @@
     "registerFailed": "تعذّر إنشاء الحساب. تحقّق من بياناتك.",
     "tagline": "نظّم مهامك وفواتيرك وأموالك في مكان واحد.",
     "loginSubtitle": "سجّل الدخول للمتابعة إلى لوحة التحكم.",
-    "registerSubtitle": "أنشئ حسابك للبدء."
+    "registerSubtitle": "أنشئ حسابك للبدء.",
+    "userName": "اسم المستخدم",
+    "userNameOrEmail": "اسم المستخدم أو البريد الإلكتروني",
+    "userNamePlaceholder": "مثال: mustafa",
+    "userNameTaken": "اسم المستخدم مستخدم بالفعل."
   },
   "dashboard": {
     "goodMorning": "صباح الخير",
@@ -257,7 +261,8 @@
       "teal": "فيروزي",
       "graphite": "رمادي فحمي",
       "burgundy": "عنابي"
-    }
+    },
+    "userName": "اسم المستخدم"
   },
   "categories": {
     "placeholder": "اختر تصنيفاً",
@@ -339,12 +344,29 @@
     "required": "مطلوب",
     "invalidEmail": "أدخل بريدًا إلكترونيًا صحيحًا",
     "amountPositive": "يجب أن يكون أكبر من صفر",
-    "passwordRules": "6 أحرف على الأقل وتتضمن رقمًا"
+    "passwordRules": "6 أحرف على الأقل وتتضمن رقمًا",
+    "userNameRules": "من 3 إلى 32 حرفا أو رقما أو نقطة أو شرطة"
   },
   "filters": {
     "title": "تصفية",
     "clear": "تفريغ حقول البحث",
     "keyword": "كلمة البحث",
     "searchFilter": "بحث / تصفية"
+  },
+  "account": {
+    "menu": "الحساب",
+    "changePassword": "تغيير كلمة المرور",
+    "changePasswordHint": "أدخل كلمة المرور الحالية ثم اختر كلمة مرور جديدة.",
+    "passwordSection": "كلمة المرور",
+    "currentPassword": "كلمة المرور الحالية",
+    "newPassword": "كلمة المرور الجديدة",
+    "confirmNewPassword": "تأكيد كلمة المرور الجديدة",
+    "passwordRule": "6 أحرف على الأقل وتحتوي على رقم.",
+    "currentWrong": "كلمة المرور الحالية غير صحيحة.",
+    "sameAsCurrent": "اختر كلمة مرور مختلفة عن الحالية.",
+    "changed": "تم تغيير كلمة المرور",
+    "editProfile": "تعديل الملف الشخصي",
+    "profileSaved": "تم حفظ الملف الشخصي",
+    "myProfile": "ملفي الشخصي"
   }
 }
