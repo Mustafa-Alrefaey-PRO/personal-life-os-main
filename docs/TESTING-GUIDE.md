@@ -45,7 +45,8 @@ cd frontend && npm run lint && npm run build
 - [ ] "Add" opens the new page (`/tasks/new`…); saving returns to the list with a toast
 - [ ] The eye icon opens the details page; the "i" icon shows a hover preview
 - [ ] On a details page: edit and save; change status from the status dropdown (complete/reopen a task, pay/unpay a bill)
-- [ ] Delete sits beside Cancel/Save, asks for confirmation, then returns to the list
+- [ ] Delete sits beside Cancel/Save, returns to the list at once with “Name” deleted and Undo (6s, paused on hover); Undo brings the row back; nothing is sent until the toast closes
+- [ ] A failed delete brings the row back with a red toast that stays until ×; receipts still ask for confirmation
 - [ ] Cancel after editing asks "Entered data will not be saved…"; Cancel with no edits leaves immediately
 - [ ] Empty required fields show inline errors; negative or zero amounts are rejected
 - [ ] A bill due today shows as Pending, not Overdue

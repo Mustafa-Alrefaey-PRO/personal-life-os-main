@@ -23,6 +23,7 @@ import { PreviewTip } from '../components/ui/PreviewTip';
 import { useToast } from '../components/ui/useToast';
 import { Pagination } from '../components/ui/Pagination';
 import { usePagination } from '../hooks/usePagination';
+import { useWithoutPending } from '../stores/pendingDeleteStore';
 import { useFilters } from '../hooks/useFilters';
 import { FilterPanel, FilterToggle } from '../components/ui/FilterPanel';
 
@@ -57,7 +58,8 @@ export default function TasksPage() {
     onSettled: () => setCompletingId(null),
   });
 
-  const tasks = data?.data ?? [];
+  // Rows with a pending delete (Undo toast showing) stay hidden
+  const tasks = useWithoutPending('tasks', data?.data ?? []);
   const query = f.search.toLowerCase();
   const filtered = tasks
     .filter((task) => f.status === 'All' || task.statusCode === f.status)

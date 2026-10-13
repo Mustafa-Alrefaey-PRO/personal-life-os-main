@@ -16,6 +16,7 @@ import { FormField } from '../components/ui/FormField';
 import { AppDatePicker } from '../components/ui/AppDatePicker';
 import { Pagination } from '../components/ui/Pagination';
 import { usePagination } from '../hooks/usePagination';
+import { useWithoutPending } from '../stores/pendingDeleteStore';
 import { useFilters } from '../hooks/useFilters';
 import { FilterPanel, FilterToggle } from '../components/ui/FilterPanel';
 
@@ -28,7 +29,8 @@ export default function JournalPage() {
 
   const { data, isLoading } = useQuery({ queryKey: ['journal'], queryFn: () => journalService.getAllJournals() });
 
-  const entries = data?.data ?? [];
+  // Rows with a pending delete (Undo toast showing) stay hidden
+  const entries = useWithoutPending('journal', data?.data ?? []);
   const query = f.search.toLowerCase();
   const filtered = entries
     .filter((e) => !query || e.notes.toLowerCase().includes(query))

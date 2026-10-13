@@ -97,7 +97,8 @@ function ReceiptForm({ receipt }: { receipt?: Receipt }) {
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => receiptService.deleteReceipt(id),
-    onSuccess: () => { invalidate(); showToast(t('receipts.deleted'), 'success'); backToList(); },
+    // No Undo: deleting a receipt also deletes its image file, so it is confirmed first instead
+    onSuccess: () => { invalidate(); showToast(t('common.deletedNamed', { name: receipt?.title ?? '' }), 'neutral'); backToList(); },
     onError: () => showToast(t('common.error'), 'error'),
   });
 

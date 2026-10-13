@@ -104,7 +104,7 @@ To build a new list page, copy `BillsPage.tsx` and change the data — the struc
 
 ### New and details pages
 
-Adding or opening a record goes to its own page, never a popup (only the delete confirmation is a dialog):
+Adding or opening a record goes to its own page, never a popup (only the receipt delete confirmation is a dialog):
 
 ```
 Breadcrumb:  [icon] Bills  »  [edit] Bill details      (parent is a link)
@@ -121,7 +121,7 @@ Status:      [ Pending  ⌄ ]  Created on …              (details only; menu: 
 
 - Routes: `/bills/new` creates, `/bills/:id` shows the record, editable. Saving, cancelling or deleting returns to the list.
 - The status button is filled with the status color (green done/paid, orange pending, red overdue) and opens a menu of the allowed changes (`StatusMenu`).
-- Delete lives only on the details page, beside Cancel/Save (red outline), and asks for confirmation.
+- Delete lives only on the details page, beside Cancel/Save (red outline). Tasks, bills, transactions and journal entries delete with **Undo** (`useUndoableDelete`): the row disappears at once and a neutral toast names it with Undo for 6s; the API delete is sent only when that toast closes, and a failure brings the row back with a red toast. Receipts confirm first (pass `confirmDelete`), because their image file is removed for good.
 - List rows have two clear 22px outline icons: **eye** (open details) and **i** (hover preview of key fields).
 - To build one, copy `BillFormPage.tsx`: `PageHeader` with `parent`, then `DetailBar` + `StatusMenu`, one `FormSection` per group of fields, and `FormPageActions` (pass `onDelete` on details pages) from `components/ui/FormPage.tsx`. A wrong id shows `RecordNotFound`.
 
@@ -146,7 +146,7 @@ Status:      [ Pending  ⌄ ]  Created on …              (details only; menu: 
 | `ConfirmDialog` (on `Modal`) | Delete confirmation | Escape closes, focus is trapped and restored |
 | `AppSelect`, `AppDatePicker` | Pickers | Pop-ups render in `<body>` so cards/dialogs never clip them |
 | `Alert` | Inline messages | Form errors: tinted banner, solid bar on the leading edge, icon |
-| `ToastProvider` / `useToast` | Action results | Wide banner just under the top bar and breadcrumb (104px), aligned with the content edge, three-quarters of its width; message centred with its icon; slides down 140ms, stays 3.5s, leaves at once; click to dismiss |
+| `ToastProvider` / `useToast` | Action results | Wide banner just under the top bar and breadcrumb (104px), aligned with the content edge, three-quarters of its width; message centred with its icon; slides down 140ms, stays 3.5s (paused on hover), leaves at once; click to dismiss. `neutral` tone + `action` for Undo; errors stay until × |
 | `EmptyState` | No data / no results | Icon + title + hint + optional action |
 | `Icon` | Every icon | Add new SVG paths to the map instead of inlining SVG |
 | `Logo`, `BrandPicker` | Identity | See section 7 |

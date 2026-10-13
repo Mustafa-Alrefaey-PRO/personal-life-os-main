@@ -15,6 +15,7 @@ import { DetailBar, FormPageActions, FormSection, RecordNotFound, StatusMenu } f
 import { useToast } from '../components/ui/useToast';
 import { useRecordId } from '../hooks/useRecordId';
 import { useDirty } from '../hooks/useDirty';
+import { useUndoableDelete } from '../hooks/useUndoableDelete';
 import { compact, positiveAmountKey, requiredKey, type FieldErrors } from '../utils/validation';
 
 const emptyForm: CreateBillRequest = { name: '', amount: 0, dueDate: '', reminderDaysBefore: 3 };
@@ -54,6 +55,13 @@ function BillForm({ bill }: { bill?: Bill }) {
   const fieldError = (key: keyof typeof errors) => errors[key] && t(errors[key]!);
 
   const backToList = () => navigate('/bills');
+  const undoableDelete = useUndoableDelete();
+  // Hidden at once with an Undo toast; the delete is sent when the toast closes.
+  const remove = async () => {
+    if (!bill) return;
+    undoableDelete({ section: 'bills', id: bill.id, name: bill.name, remove: () => billService.deleteBill(bill.id) });
+    backToList();
+  };
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ['bills'] });
     queryClient.invalidateQueries({ queryKey: ['dashboard'] });
@@ -68,12 +76,6 @@ function BillForm({ bill }: { bill?: Bill }) {
   const togglePaidMutation = useMutation({
     mutationFn: (current: Bill) => current.statusCode === Status.Paid ? billService.markAsUnpaid(current.id) : billService.markAsPaid(current.id),
     onSuccess: (_, current) => { invalidate(); showToast(current.statusCode === Status.Paid ? t('bills.unpaid') : t('bills.paid'), 'success'); },
-    onError: () => showToast(t('common.error'), 'error'),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => billService.deleteBill(id),
-    onSuccess: () => { invalidate(); showToast(t('bills.deleted'), 'success'); backToList(); },
     onError: () => showToast(t('common.error'), 'error'),
   });
 
@@ -125,7 +127,7 @@ function BillForm({ bill }: { bill?: Bill }) {
           </FormSection>
         </div>
       </fieldset>
-      <FormPageActions onCancel={backToList} saving={saving} dirty={dirty} onDelete={bill ? () => deleteMutation.mutateAsync(bill.id) : undefined} submitIcon={bill ? 'check' : 'plus'}
+      <FormPageActions onCancel={backToList} saving={saving} dirty={dirty} onDelete={bill ? remove : undefined} confirmDelete={false} submitIcon={bill ? 'check' : 'plus'}
         submitLabel={bill ? t('common.saveChanges') : t('bills.addBill')} />
     </form>
   );

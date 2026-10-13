@@ -317,7 +317,10 @@
     "leaveTitle": "لن يتم حفظ البيانات المدخلة، هل أنت متأكد من الخروج؟",
     "leaveConfirm": "تأكيد العملية",
     "leaveStay": "إلغاء العملية",
-    "details": "التفاصيل"
+    "details": "التفاصيل",
+    "undo": "تراجع",
+    "deletedNamed": "تم حذف \"{{name}}\"",
+    "deleteFailed": "تعذّر حذف \"{{name}}\"، وتمت استعادته."
   },
   "ramadan": {
     "greeting": "رمضان كريم",

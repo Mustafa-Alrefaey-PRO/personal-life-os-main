@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { toDateKey, todayKey } from '../utils/formatDate';
 import { categoryOptions, EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../utils/categoryLabel';
+import { formatMoney } from '../utils/formatMoney';
 import { transactionService } from '../services/transaction.service';
 import type { Transaction, CreateTransactionRequest, TransactionType } from '../types/transaction';
 import { MainLayout } from '../components/layout/MainLayout';
@@ -17,6 +18,7 @@ import { FormPageActions, FormSection, RecordNotFound } from '../components/ui/F
 import { useToast } from '../components/ui/useToast';
 import { useRecordId } from '../hooks/useRecordId';
 import { useDirty } from '../hooks/useDirty';
+import { useUndoableDelete } from '../hooks/useUndoableDelete';
 import { compact, positiveAmountKey, requiredKey, type FieldErrors } from '../utils/validation';
 
 // A function so "today" is computed in local time when the page opens, not once at load
@@ -56,6 +58,13 @@ function TransactionForm({ tx }: { tx?: Transaction }) {
   const fieldError = (key: keyof typeof errors) => errors[key] && t(errors[key]!);
 
   const backToList = () => navigate('/transactions');
+  const undoableDelete = useUndoableDelete();
+  // Hidden at once with an Undo toast; the delete is sent when the toast closes.
+  const remove = async () => {
+    if (!tx) return;
+    undoableDelete({ section: 'transactions', id: tx.id, name: `${tx.type === 'Income' ? t('transactions.income') : t('transactions.expense')} · ${formatMoney(tx.amount)}`, remove: () => transactionService.deleteTransaction(tx.id) });
+    backToList();
+  };
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ['transactions'] });
     queryClient.invalidateQueries({ queryKey: ['dashboard'] });
@@ -64,12 +73,6 @@ function TransactionForm({ tx }: { tx?: Transaction }) {
   const saveMutation = useMutation({
     mutationFn: () => tx ? transactionService.updateTransaction(tx.id, { ...form, id: tx.id }) : transactionService.createTransaction(form),
     onSuccess: () => { invalidate(); showToast(tx ? t('transactions.updated') : t('transactions.created'), 'success'); backToList(); },
-    onError: () => showToast(t('common.error'), 'error'),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => transactionService.deleteTransaction(id),
-    onSuccess: () => { invalidate(); showToast(t('transactions.deleted'), 'success'); backToList(); },
     onError: () => showToast(t('common.error'), 'error'),
   });
 
@@ -119,7 +122,7 @@ function TransactionForm({ tx }: { tx?: Transaction }) {
           </FormSection>
         </div>
       </fieldset>
-      <FormPageActions onCancel={backToList} saving={saving} dirty={dirty} onDelete={tx ? () => deleteMutation.mutateAsync(tx.id) : undefined} submitIcon={tx ? 'check' : 'plus'}
+      <FormPageActions onCancel={backToList} saving={saving} dirty={dirty} onDelete={tx ? remove : undefined} confirmDelete={false} submitIcon={tx ? 'check' : 'plus'}
         submitLabel={tx ? t('common.saveChanges') : t('transactions.addTransaction')} />
     </form>
   );

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { formatDate, toDateKey, todayKey } from '../utils/formatDate';
+import { formatDate, toDateKey, todayKey, formatDateLong } from '../utils/formatDate';
 import { journalService } from '../services/journal.service';
 import { getApiErrorMessage } from '../services/api';
 import type { JournalEntry } from '../types/journal';
@@ -15,6 +15,7 @@ import { DetailBar, FormPageActions, FormSection, RecordNotFound } from '../comp
 import { useToast } from '../components/ui/useToast';
 import { useRecordId } from '../hooks/useRecordId';
 import { useDirty } from '../hooks/useDirty';
+import { useUndoableDelete } from '../hooks/useUndoableDelete';
 import { compact, requiredKey, type FieldErrors } from '../utils/validation';
 
 /** `/journal/new` writes an entry; `/journal/:id` shows it, editable. */
@@ -37,7 +38,7 @@ export default function JournalFormPage() {
 }
 
 function JournalForm({ entry }: { entry?: JournalEntry }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
@@ -50,6 +51,13 @@ function JournalForm({ entry }: { entry?: JournalEntry }) {
   const fieldError = (key: keyof typeof errors) => errors[key] && t(errors[key]!);
 
   const backToList = () => navigate('/journal');
+  const undoableDelete = useUndoableDelete();
+  // Hidden at once with an Undo toast; the delete is sent when the toast closes.
+  const remove = async () => {
+    if (!entry) return;
+    undoableDelete({ section: 'journal', id: entry.id, name: formatDateLong(entry.date, i18n.language), remove: () => journalService.deleteJournal(entry.id) });
+    backToList();
+  };
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ['journal'] });
     queryClient.invalidateQueries({ queryKey: ['dashboard'] });
@@ -62,12 +70,6 @@ function JournalForm({ entry }: { entry?: JournalEntry }) {
     onSuccess: () => { invalidate(); showToast(entry ? t('journal.updated') : t('journal.saved'), 'success'); backToList(); },
     // e.g. "an entry already exists for this date" (one entry per day)
     onError: (err) => showToast(getApiErrorMessage(err, t('common.error')), 'error'),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => journalService.deleteJournal(id),
-    onSuccess: () => { invalidate(); showToast(t('journal.deleted'), 'success'); backToList(); },
-    onError: () => showToast(t('common.error'), 'error'),
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -94,7 +96,7 @@ function JournalForm({ entry }: { entry?: JournalEntry }) {
           </FormField>
         </FormSection>
       </fieldset>
-      <FormPageActions onCancel={backToList} saving={saving} dirty={dirty} onDelete={entry ? () => deleteMutation.mutateAsync(entry.id) : undefined} submitIcon={entry ? 'check' : 'plus'}
+      <FormPageActions onCancel={backToList} saving={saving} dirty={dirty} onDelete={entry ? remove : undefined} confirmDelete={false} submitIcon={entry ? 'check' : 'plus'}
         submitLabel={entry ? t('journal.saveChanges') : t('journal.save')} />
     </form>
   );

@@ -17,6 +17,7 @@ import { DetailBar, FormPageActions, FormSection, RecordNotFound, StatusMenu } f
 import { useToast } from '../components/ui/useToast';
 import { useRecordId } from '../hooks/useRecordId';
 import { useDirty } from '../hooks/useDirty';
+import { useUndoableDelete } from '../hooks/useUndoableDelete';
 import { compact, requiredKey, type FieldErrors } from '../utils/validation';
 
 const emptyTask: CreateTaskRequest = { title: '', description: '', dueDate: '', category: '', priority: '' };
@@ -59,6 +60,13 @@ function TaskForm({ task }: { task?: Task }) {
   const fieldError = (key: keyof typeof errors) => errors[key] && t(errors[key]!);
 
   const backToList = () => navigate('/tasks');
+  const undoableDelete = useUndoableDelete();
+  // Hidden at once with an Undo toast; the delete is sent when the toast closes.
+  const remove = async () => {
+    if (!task) return;
+    undoableDelete({ section: 'tasks', id: task.id, name: task.title, remove: () => taskService.deleteTask(task.id) });
+    backToList();
+  };
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ['tasks'] });
     queryClient.invalidateQueries({ queryKey: ['dashboard'] });
@@ -74,12 +82,6 @@ function TaskForm({ task }: { task?: Task }) {
   const toggleMutation = useMutation({
     mutationFn: (current: Task) => current.statusCode === Status.Completed ? taskService.uncompleteTask(current.id) : taskService.completeTask(current.id),
     onSuccess: (_, current) => { invalidate(); showToast(current.statusCode === Status.Completed ? t('tasks.markedPending') : t('tasks.completedMsg'), 'success'); },
-    onError: () => showToast(t('common.error'), 'error'),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => taskService.deleteTask(id),
-    onSuccess: () => { invalidate(); showToast(t('tasks.deleted'), 'success'); backToList(); },
     onError: () => showToast(t('common.error'), 'error'),
   });
 
@@ -139,7 +141,7 @@ function TaskForm({ task }: { task?: Task }) {
           </FormSection>
         </div>
       </fieldset>
-      <FormPageActions onCancel={backToList} saving={saving} dirty={dirty} onDelete={task ? () => deleteMutation.mutateAsync(task.id) : undefined} submitIcon={task ? 'check' : 'plus'}
+      <FormPageActions onCancel={backToList} saving={saving} dirty={dirty} onDelete={task ? remove : undefined} confirmDelete={false} submitIcon={task ? 'check' : 'plus'}
         submitLabel={task ? t('common.saveChanges') : t('tasks.createTask')} />
     </form>
   );

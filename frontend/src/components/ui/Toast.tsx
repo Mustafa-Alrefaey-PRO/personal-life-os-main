@@ -1,9 +1,9 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon, type IconName } from './Icon';
-import { ToastContext, type ToastType } from './useToast';
+import { ToastContext, type ToastOptions, type ToastType } from './useToast';
 
-interface Toast {
+interface Toast extends ToastOptions {
   id: number;
   message: string;
   type: ToastType;
@@ -15,33 +15,66 @@ const tones: Record<ToastType, { box: string; icon: IconName }> = {
   success: { box: 'border-s-success bg-success-soft text-success', icon: 'check' },
   error: { box: 'border-s-danger-text bg-danger-soft text-danger-text', icon: 'alert' },
   info: { box: 'border-s-info bg-info-soft text-info', icon: 'info' },
+  // Removals: not a "success" moment, so no green
+  neutral: { box: 'border-s-primary-dark bg-band text-title', icon: 'trash' },
 };
 
 /**
  * Wide tinted banner with a solid bar on the leading edge and the message
- * centred with its icon. Slides down into place, stays 3.5s, then leaves at
- * once; clicking it dismisses it early.
+ * centred with its icon. Slides down into place, stays 3.5s (or `duration`),
+ * paused while the pointer is over it, then leaves at once. Errors stay until
+ * closed, so a failure is never missed. Clicking the banner closes it.
  */
-function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: number) => void }) {
+function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: number, viaAction: boolean) => void }) {
   const { t } = useTranslation();
   const { box, icon } = tones[toast.type];
+  const persistent = toast.type === 'error';
+  const [paused, setPaused] = useState(false);
+  const remaining = useRef(toast.duration ?? SHOW_MS);
 
+  // Counts down only while not hovered; resumes with the time that was left.
   useEffect(() => {
-    const remove = setTimeout(() => onRemove(toast.id), SHOW_MS);
-    return () => clearTimeout(remove);
-  }, [toast.id, onRemove]);
+    if (persistent || paused) return;
+    const started = Date.now();
+    const timer = setTimeout(() => onRemove(toast.id, false), remaining.current);
+    return () => { clearTimeout(timer); remaining.current -= Date.now() - started; };
+  }, [paused, persistent, toast.id, onRemove]);
 
   return (
     // Opaque surface underneath so the semi-transparent dark-mode tints stay solid
     <div
       role={toast.type === 'error' ? 'alert' : 'status'}
       title={t('common.close')}
-      onClick={() => onRemove(toast.id)}
+      onClick={() => onRemove(toast.id, false)}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
       className="animate-toast-in cursor-pointer rounded bg-surface shadow-pop"
     >
-      <div className={`flex min-h-15 items-center justify-center gap-2.5 rounded border-s-4 px-6 py-3 ${box}`}>
+      <div className={`flex min-h-15 items-center gap-3 rounded border-s-4 px-6 py-3 ${box}`}>
+        <span className="flex-1" />
         <p className="text-center text-sm font-bold">{toast.message}</p>
         <Icon name={icon} className="size-[18px] shrink-0" />
+        <span className="flex flex-1 justify-end">
+          {toast.action && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); toast.action!.onClick(); onRemove(toast.id, true); }}
+              className="rounded-md border border-current/40 px-3 py-1 text-sm font-bold transition-colors duration-150 hover:bg-surface"
+            >
+              {toast.action.label}
+            </button>
+          )}
+          {persistent && (
+            <button
+              type="button"
+              aria-label={t('common.close')}
+              onClick={(e) => { e.stopPropagation(); onRemove(toast.id, false); }}
+              className="inline-flex size-6 items-center justify-center rounded opacity-70 hover:opacity-100"
+            >
+              <Icon name="x" className="size-3.5" />
+            </button>
+          )}
+        </span>
       </div>
     </div>
   );
@@ -51,14 +84,19 @@ let nextId = 1;
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const toastsRef = useRef(toasts);
+  useEffect(() => { toastsRef.current = toasts; });
 
-  const remove = useCallback((id: number) => {
+  const remove = useCallback((id: number, viaAction: boolean) => {
+    const toast = toastsRef.current.find((t) => t.id === id);
     setToasts((prev) => prev.filter((t) => t.id !== id));
+    // onClose runs once, and never after the action (e.g. Undo cancels a pending delete)
+    if (toast && !viaAction) toast.onClose?.();
   }, []);
 
-  const showToast = useCallback((message: string, type: ToastType = 'success') => {
+  const showToast = useCallback((message: string, type: ToastType = 'success', options: ToastOptions = {}) => {
     const id = nextId++;
-    setToasts((prev) => [...prev, { id, message, type }]);
+    setToasts((prev) => [...prev, { id, message, type, ...options }]);
   }, []);
 
   return (

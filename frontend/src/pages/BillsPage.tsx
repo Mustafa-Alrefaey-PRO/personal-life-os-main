@@ -23,6 +23,7 @@ import { PreviewTip } from '../components/ui/PreviewTip';
 import { useToast } from '../components/ui/useToast';
 import { Pagination } from '../components/ui/Pagination';
 import { usePagination } from '../hooks/usePagination';
+import { useWithoutPending } from '../stores/pendingDeleteStore';
 import { useFilters } from '../hooks/useFilters';
 import { FilterPanel, FilterToggle } from '../components/ui/FilterPanel';
 
@@ -52,7 +53,8 @@ export default function BillsPage() {
   });
 
   const today = todayKey();
-  const bills = data?.data ?? [];
+  // Rows with a pending delete (Undo toast showing) stay hidden
+  const bills = useWithoutPending('bills', data?.data ?? []);
   const isOverdue = (bill: Bill) => bill.statusCode === Status.Pending && toDateKey(bill.dueDate) < today;
   const pending = bills.filter((b) => b.statusCode === Status.Pending);
   const paidCount = bills.filter((b) => b.statusCode === Status.Paid).length;

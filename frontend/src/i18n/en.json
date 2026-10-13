@@ -317,7 +317,10 @@
     "leaveTitle": "Entered data will not be saved. Are you sure you want to leave?",
     "leaveConfirm": "Confirm",
     "leaveStay": "Cancel",
-    "details": "Details"
+    "details": "Details",
+    "undo": "Undo",
+    "deletedNamed": "\"{{name}}\" deleted",
+    "deleteFailed": "Couldn't delete \"{{name}}\". It has been restored."
   },
   "ramadan": {
     "greeting": "Ramadan Kareem",

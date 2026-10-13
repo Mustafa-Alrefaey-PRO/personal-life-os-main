@@ -21,6 +21,7 @@ import { AppSelect } from '../components/ui/AppSelect';
 import { PreviewTip } from '../components/ui/PreviewTip';
 import { Pagination } from '../components/ui/Pagination';
 import { usePagination } from '../hooks/usePagination';
+import { useWithoutPending } from '../stores/pendingDeleteStore';
 import { useFilters } from '../hooks/useFilters';
 import { FilterPanel, FilterToggle } from '../components/ui/FilterPanel';
 
@@ -33,7 +34,8 @@ export default function TransactionsPage() {
 
   const { data, isLoading } = useQuery({ queryKey: ['transactions'], queryFn: () => transactionService.getAllTransactions() });
 
-  const all = data?.data ?? [];
+  // Rows with a pending delete (Undo toast showing) stay hidden
+  const all = useWithoutPending('transactions', data?.data ?? []);
 
   const query = f.search.toLowerCase();
   const filtered = all
