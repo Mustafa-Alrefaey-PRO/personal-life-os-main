@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
@@ -98,6 +98,16 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { collapsed, toggle } = useSidebarStore();
   const isRTL = i18n.language === 'ar';
+
+  // Where the content starts beside the sidebar, for overlays that line up with it (toasts).
+  // Only while the app shell is on screen; the auth pages have no sidebar.
+  useEffect(() => {
+    const root = document.documentElement;
+    const apply = () => root.style.setProperty('--content-start', window.innerWidth >= 768 ? (collapsed ? '80px' : '278px') : '0px');
+    apply();
+    window.addEventListener('resize', apply);
+    return () => { window.removeEventListener('resize', apply); root.style.removeProperty('--content-start'); };
+  }, [collapsed]);
 
   return (
     <div className="flex min-h-screen bg-page text-body">

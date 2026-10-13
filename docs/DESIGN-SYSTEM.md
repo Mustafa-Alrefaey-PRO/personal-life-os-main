@@ -145,7 +145,8 @@ Status:      [ Pending  ⌄ ]  Created on …              (details only; menu: 
 | `PreviewTip` | Row "i" icon | Hover/focus card with key fields; rendered in `<body>` so tables never clip it |
 | `ConfirmDialog` (on `Modal`) | Delete confirmation | Escape closes, focus is trapped and restored |
 | `AppSelect`, `AppDatePicker` | Pickers | Pop-ups render in `<body>` so cards/dialogs never clip them |
-| `Alert` | Messages | Used by toasts and form errors |
+| `Alert` | Inline messages | Form errors: tinted banner, solid bar on the leading edge, icon |
+| `ToastProvider` / `useToast` | Action results | Wide banner just under the top bar and breadcrumb (104px), aligned with the content edge, three-quarters of its width; message centred with its icon; slides down 140ms, stays 3.5s, leaves at once; click to dismiss |
 | `EmptyState` | No data / no results | Icon + title + hint + optional action |
 | `Icon` | Every icon | Add new SVG paths to the map instead of inlining SVG |
 | `Logo`, `BrandPicker` | Identity | See section 7 |
