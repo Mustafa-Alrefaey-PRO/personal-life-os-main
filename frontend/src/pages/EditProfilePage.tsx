@@ -60,17 +60,17 @@ export default function EditProfilePage() {
         <fieldset disabled={saving} className="min-w-0">
           <FormSection title={t('profile.userInfo')}>
             <FormField label={t('auth.fullName')} required error={fieldError('fullName')} className="md:col-span-2">
-              {(id) => <input id={id} type="text" autoComplete="name" value={form.fullName} onChange={(e) => update({ fullName: e.target.value })} />}
+              {(id) => <input id={id} type="text" autoComplete="name" placeholder={t('auth.fullNamePlaceholder')} value={form.fullName} onChange={(e) => update({ fullName: e.target.value })} />}
             </FormField>
             <FormField label={t('auth.userName')} required error={fieldError('userName')}>
-              {(id) => <input id={id} type="text" dir="ltr" autoComplete="username" autoCapitalize="none" spellCheck={false} value={form.userName} onChange={(e) => update({ userName: e.target.value })} />}
+              {(id) => <input id={id} type="text" dir="ltr" autoComplete="username" placeholder={t('auth.userNamePlaceholder')} autoCapitalize="none" spellCheck={false} value={form.userName} onChange={(e) => update({ userName: e.target.value })} />}
             </FormField>
             <FormField label={t('auth.email')} required error={fieldError('email')}>
-              {(id) => <input id={id} type="email" dir="ltr" autoComplete="email" value={form.email} onChange={(e) => update({ email: e.target.value })} />}
+              {(id) => <input id={id} type="email" dir="ltr" autoComplete="email" placeholder={t('auth.emailPlaceholder')} value={form.email} onChange={(e) => update({ email: e.target.value })} />}
             </FormField>
           </FormSection>
         </fieldset>
-        <FormPageActions onCancel={() => navigate('/profile')} submitLabel={t('common.saveChanges')} saving={saving} dirty={dirty} />
+        <FormPageActions backLabel={t('account.backToProfile')} onCancel={() => navigate('/profile')} submitLabel={t('common.saveChanges')} saving={saving} dirty={dirty} />
       </form>
     </MainLayout>
   );

@@ -103,7 +103,7 @@ function TransactionForm({ tx }: { tx?: Transaction }) {
             </div>
             <FormField label={t('transactions.amount')} required error={fieldError('amount')}>
               {(id) => <input id={id} type="number" required min="0.01" step="0.01" value={form.amount || ''}
-                onChange={(e) => setForm({ ...form, amount: parseFloat(e.target.value) || 0 })} placeholder="0.00" />}
+                onChange={(e) => setForm({ ...form, amount: parseFloat(e.target.value) || 0 })} placeholder={t('common.amountPlaceholder')} />}
             </FormField>
             <FormField label={t('transactions.date')} required error={fieldError('date')}>
               {(id) => <AppDatePicker id={id} value={form.date} onChange={(v) => setForm({ ...form, date: v })} required />}
@@ -122,7 +122,7 @@ function TransactionForm({ tx }: { tx?: Transaction }) {
           </FormSection>
         </div>
       </fieldset>
-      <FormPageActions onCancel={backToList} saving={saving} dirty={dirty} onDelete={tx ? remove : undefined} confirmDelete={false} submitIcon={tx ? 'check' : 'plus'}
+      <FormPageActions onCancel={backToList} saving={saving} dirty={dirty} onDelete={tx ? remove : undefined} confirmDelete={false} submitIcon={tx ? 'check' : 'transactions'}
         submitLabel={tx ? t('common.saveChanges') : t('transactions.addTransaction')} />
     </form>
   );

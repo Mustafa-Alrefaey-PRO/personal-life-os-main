@@ -122,7 +122,7 @@ function ReceiptForm({ receipt }: { receipt?: Receipt }) {
             </FormField>
             <FormField label={t('receipts.amount')} required error={fieldError('amount')}>
               {(id) => <input id={id} type="number" required min="0.01" step="0.01" value={form.amount || ''}
-                onChange={(e) => setForm({ ...form, amount: parseFloat(e.target.value) || 0 })} placeholder="0.00" />}
+                onChange={(e) => setForm({ ...form, amount: parseFloat(e.target.value) || 0 })} placeholder={t('common.amountPlaceholder')} />}
             </FormField>
             <FormField label={t('receipts.date')} required error={fieldError('date')}>
               {(id) => <AppDatePicker id={id} value={form.date} onChange={(v) => setForm({ ...form, date: v })} required />}
@@ -161,7 +161,7 @@ function ReceiptForm({ receipt }: { receipt?: Receipt }) {
           </FormSection>
         </div>
       </fieldset>
-      <FormPageActions onCancel={backToList} saving={saving} dirty={dirty} onDelete={receipt ? () => deleteMutation.mutateAsync(receipt.id) : undefined} submitIcon={receipt ? 'check' : 'plus'}
+      <FormPageActions onCancel={backToList} saving={saving} dirty={dirty} onDelete={receipt ? () => deleteMutation.mutateAsync(receipt.id) : undefined} submitIcon={receipt ? 'check' : 'upload'}
         submitLabel={receipt ? t('common.saveChanges') : t('receipts.upload')} />
       <ImageLightbox image={preview} onClose={() => setPreview(null)} />
     </form>

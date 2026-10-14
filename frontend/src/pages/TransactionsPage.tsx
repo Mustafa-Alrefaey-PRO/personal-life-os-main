@@ -53,7 +53,7 @@ export default function TransactionsPage() {
         icon="transactions"
         title={t('transactions.title')}
         subtitle={`${all.length} ${t('transactions.entries')}`}
-        actions={<><Button icon="plus" onClick={() => navigate('/transactions/new')}>{t('transactions.addTransaction')}</Button><FilterToggle open={filterOpen} onToggle={() => setFilterOpen(!filterOpen)} activeCount={filters.activeCount} /></>}
+        actions={<><Button icon="transactions" onClick={() => navigate('/transactions/new')}>{t('transactions.addTransaction')}</Button><FilterToggle open={filterOpen} onToggle={() => setFilterOpen(!filterOpen)} activeCount={filters.activeCount} /></>}
       />
 
       <div className="flex flex-col items-start gap-4 lg:flex-row lg:gap-0">
@@ -73,7 +73,7 @@ export default function TransactionsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filtered.length === 0 && <EmptyRow colSpan={6} title={hasFilters ? t('transactions.noResults') : t('transactions.noTransactions')} hint={hasFilters ? t('transactions.noResultsHint') : t('transactions.noTransactionsHint')} action={!hasFilters && <Button icon="plus" onClick={() => navigate('/transactions/new')}>{t('transactions.addTransaction')}</Button>} />}
+                    {filtered.length === 0 && <EmptyRow colSpan={6} title={hasFilters ? t('transactions.noResults') : t('transactions.noTransactions')} hint={hasFilters ? t('transactions.noResultsHint') : t('transactions.noTransactionsHint')} action={!hasFilters && <Button icon="transactions" onClick={() => navigate('/transactions/new')}>{t('transactions.addTransaction')}</Button>} />}
                     {paged.map((tx) => {
                       const income = tx.type === 'Income';
                       return (

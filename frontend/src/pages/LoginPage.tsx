@@ -64,10 +64,10 @@ export default function LoginPage() {
     >
       <form onSubmit={handleSubmit} noValidate className="space-y-4">
         <AuthField label={t('auth.userNameOrEmail')} type="text" icon="profile" value={form.login} autoComplete="username"
-          onChange={(login) => update({ login })} placeholder={t('auth.userNamePlaceholder')}
+          onChange={(login) => update({ login })} placeholder={t('auth.loginPlaceholder')}
           error={fieldErrors.login && t(fieldErrors.login)} />
         <AuthField label={t('auth.password')} type="password" icon="lock" value={form.password} autoComplete="current-password"
-          onChange={(password) => update({ password })} placeholder="••••••••"
+          onChange={(password) => update({ password })} placeholder={t('auth.passwordPlaceholder')}
           error={fieldErrors.password && t(fieldErrors.password)} />
 
         <FormError message={error} />

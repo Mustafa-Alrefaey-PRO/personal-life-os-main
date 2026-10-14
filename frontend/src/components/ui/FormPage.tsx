@@ -36,10 +36,12 @@ interface FormPageActionsProps {
   confirmDelete?: boolean;
   /** The form has unsaved edits: Cancel asks before leaving, and closing/reloading the tab warns */
   dirty?: boolean;
+  /** Back button label while the form is untouched, naming where it goes (default "Back to list") */
+  backLabel?: string;
 }
 
 /** Delete (details pages only) + Cancel + submit under the form sections, aligned to the end. */
-export function FormPageActions({ onCancel, submitLabel, submitIcon = 'check', saving, disabled, onDelete, confirmDelete = true, dirty = false }: FormPageActionsProps) {
+export function FormPageActions({ onCancel, submitLabel, submitIcon = 'check', saving, disabled, onDelete, confirmDelete = true, dirty = false, backLabel }: FormPageActionsProps) {
   const { t } = useTranslation();
   const [confirming, setConfirming] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -71,12 +73,17 @@ export function FormPageActions({ onCancel, submitLabel, submitIcon = 'check', s
       {onDelete && (
         <Button variant="dangerOutline" icon="trash" onClick={() => (confirmDelete ? setConfirming(true) : void onDelete())} disabled={saving} className="min-w-36">{t('common.delete')}</Button>
       )}
-      <Button variant="white" icon="xCircle" onClick={() => (dirty ? setLeaving(true) : onCancel())} disabled={saving} className="min-w-36">{t('common.cancel')}</Button>
+      <Button variant="white" icon="xCircle" onClick={() => (dirty ? setLeaving(true) : onCancel())} disabled={saving} className="min-w-36">
+        {/* Says what it does: back while untouched, discard once edited */}
+        {dirty ? t('common.discardChanges') : backLabel ?? t('common.backToList')}
+      </Button>
       <Button type="submit" icon={submitIcon} loading={saving} disabled={disabled} className="min-w-36">{submitLabel}</Button>
       <Modal open={leaving} onClose={() => setLeaving(false)} title={t('common.leaveTitle')} role="alertdialog" variant="prompt" maxWidth="420px" initialFocusRef={stayRef}>
+        <p className="mb-5 text-sm text-body">{t('common.leaveMessage')}</p>
+        {/* Staying is the main, focused choice so Enter never throws work away */}
         <div className="flex flex-wrap gap-2">
-          <Button onClick={onCancel} className="min-w-36">{t('common.leaveConfirm')}</Button>
-          <Button ref={stayRef} variant="white" onClick={() => setLeaving(false)} className="min-w-28">{t('common.leaveStay')}</Button>
+          <Button ref={stayRef} onClick={() => setLeaving(false)} className="min-w-40">{t('common.leaveStay')}</Button>
+          <Button variant="dangerOutline" onClick={onCancel} className="min-w-40">{t('common.leaveConfirm')}</Button>
         </div>
       </Modal>
       {onDelete && (

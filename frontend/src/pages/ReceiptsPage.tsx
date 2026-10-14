@@ -51,7 +51,7 @@ export default function ReceiptsPage() {
         icon="receipts"
         title={t('receipts.title')}
         subtitle={`${filtered.length} · ${t('receipts.total')}: ${formatMoney(filteredTotal)}`}
-        actions={<><Button icon="plus" onClick={() => navigate('/receipts/new')}>{t('receipts.upload')}</Button><FilterToggle open={filterOpen} onToggle={() => setFilterOpen(!filterOpen)} activeCount={filters.activeCount} /></>}
+        actions={<><Button icon="upload" onClick={() => navigate('/receipts/new')}>{t('receipts.upload')}</Button><FilterToggle open={filterOpen} onToggle={() => setFilterOpen(!filterOpen)} activeCount={filters.activeCount} /></>}
       />
 
       <div className="flex flex-col items-start gap-4 lg:flex-row lg:gap-0">
@@ -71,7 +71,7 @@ export default function ReceiptsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filtered.length === 0 && <EmptyRow colSpan={6} title={hasFilters ? t('receipts.noResults') : t('receipts.noReceipts')} hint={hasFilters ? t('receipts.noResultsHint') : t('receipts.noReceiptsHint')} action={!hasFilters && <Button icon="plus" onClick={() => navigate('/receipts/new')}>{t('receipts.upload')}</Button>} />}
+                    {filtered.length === 0 && <EmptyRow colSpan={6} title={hasFilters ? t('receipts.noResults') : t('receipts.noReceipts')} hint={hasFilters ? t('receipts.noResultsHint') : t('receipts.noReceiptsHint')} action={!hasFilters && <Button icon="upload" onClick={() => navigate('/receipts/new')}>{t('receipts.upload')}</Button>} />}
                     {paged.map((receipt) => (
                       <Tr key={receipt.id}>
                         <Td>

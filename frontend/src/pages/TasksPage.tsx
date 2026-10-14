@@ -76,7 +76,7 @@ export default function TasksPage() {
         icon="tasks"
         title={t('tasks.title')}
         subtitle={`${tasks.length} ${t('tasks.total')}`}
-        actions={<><Button icon="plus" onClick={() => navigate('/tasks/new')}>{t('tasks.createTask')}</Button><FilterToggle open={filterOpen} onToggle={() => setFilterOpen(!filterOpen)} activeCount={filters.activeCount} /></>}
+        actions={<><Button icon="tasks" onClick={() => navigate('/tasks/new')}>{t('tasks.createTask')}</Button><FilterToggle open={filterOpen} onToggle={() => setFilterOpen(!filterOpen)} activeCount={filters.activeCount} /></>}
       />
 
       <div className="flex flex-col items-start gap-4 lg:flex-row lg:gap-0">
@@ -97,7 +97,7 @@ export default function TasksPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filtered.length === 0 && <EmptyRow colSpan={7} title={hasFilters ? t('tasks.noResults') : t('tasks.noTasks')} hint={hasFilters ? t('tasks.noResultsHint') : t('tasks.noTasksHint')} action={!hasFilters && <Button icon="plus" onClick={() => navigate('/tasks/new')}>{t('tasks.createTask')}</Button>} />}
+                    {filtered.length === 0 && <EmptyRow colSpan={7} title={hasFilters ? t('tasks.noResults') : t('tasks.noTasks')} hint={hasFilters ? t('tasks.noResultsHint') : t('tasks.noTasksHint')} action={!hasFilters && <Button icon="tasks" onClick={() => navigate('/tasks/new')}>{t('tasks.createTask')}</Button>} />}
                     {paged.map((task) => {
                       const done = task.statusCode === Status.Completed;
                       return (

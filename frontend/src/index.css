@@ -313,6 +313,26 @@
 /* Unlayered on purpose: these state overrides must win over component utility classes. */
 
 /* Read-only fields (e.g. status on a details page) are gray and not focus-highlighted */
+/* Browser autofill: keep our own background and text colour instead of the
+   browser's blue/yellow tint. Chromium-based browsers (Chrome, Edge, Brave)
+   only let an inset shadow paint over it, so the field colour is drawn that
+   way and the focus ring (also a shadow) is added back on focus. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: var(--c-title);
+  caret-color: var(--c-title);
+  -webkit-box-shadow: 0 0 0 1000px var(--c-input) inset;
+  box-shadow: 0 0 0 1000px var(--c-input) inset;
+}
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--c-title);
+  -webkit-box-shadow: 0 0 0 1000px var(--c-input) inset, 0 0 0 3px color-mix(in srgb, var(--c-primary) 20%, transparent);
+  box-shadow: 0 0 0 1000px var(--c-input) inset, 0 0 0 3px color-mix(in srgb, var(--c-primary) 20%, transparent);
+}
+input:autofill { filter: none; }
+
 :is(input, textarea)[readonly]:not(.cursor-pointer) { @apply cursor-default border-line bg-band text-muted focus:border-line focus:ring-0; }
 
 /* Filter panel fields use light outlines on the gray panel */

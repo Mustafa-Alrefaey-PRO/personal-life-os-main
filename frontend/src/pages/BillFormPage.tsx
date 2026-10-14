@@ -113,7 +113,7 @@ function BillForm({ bill }: { bill?: Bill }) {
             </FormField>
             <FormField label={t('bills.amount')} required error={fieldError('amount')}>
               {(id) => <input id={id} type="number" required min="0.01" step="0.01" value={form.amount || ''}
-                onChange={(e) => setForm({ ...form, amount: parseFloat(e.target.value) || 0 })} placeholder="0.00" />}
+                onChange={(e) => setForm({ ...form, amount: parseFloat(e.target.value) || 0 })} placeholder={t('common.amountPlaceholder')} />}
             </FormField>
           </FormSection>
           <FormSection title={t('bills.sectionSchedule')}>
@@ -121,13 +121,13 @@ function BillForm({ bill }: { bill?: Bill }) {
               {(id) => <AppDatePicker id={id} value={form.dueDate} onChange={(v) => setForm({ ...form, dueDate: v })} required />}
             </FormField>
             <FormField label={t('bills.reminder')}>
-              {(id) => <input id={id} type="number" min="0" max="365" value={form.reminderDaysBefore}
+              {(id) => <input id={id} type="number" min="0" max="365" placeholder={t('bills.reminderPlaceholder')} value={form.reminderDaysBefore}
                 onChange={(e) => setForm({ ...form, reminderDaysBefore: parseInt(e.target.value) || 0 })} />}
             </FormField>
           </FormSection>
         </div>
       </fieldset>
-      <FormPageActions onCancel={backToList} saving={saving} dirty={dirty} onDelete={bill ? remove : undefined} confirmDelete={false} submitIcon={bill ? 'check' : 'plus'}
+      <FormPageActions onCancel={backToList} saving={saving} dirty={dirty} onDelete={bill ? remove : undefined} confirmDelete={false} submitIcon={bill ? 'check' : 'bills'}
         submitLabel={bill ? t('common.saveChanges') : t('bills.addBill')} />
     </form>
   );

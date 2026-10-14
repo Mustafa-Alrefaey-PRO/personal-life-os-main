@@ -73,7 +73,7 @@ export default function BillsPage() {
         icon="bills"
         title={t('bills.title')}
         subtitle={`${t('bills.pending_count', { count: pending.length })} · ${t('bills.paid_count', { count: paidCount })}`}
-        actions={<><Button icon="plus" onClick={() => navigate('/bills/new')}>{t('bills.addBill')}</Button><FilterToggle open={filterOpen} onToggle={() => setFilterOpen(!filterOpen)} activeCount={filters.activeCount} /></>}
+        actions={<><Button icon="bills" onClick={() => navigate('/bills/new')}>{t('bills.addBill')}</Button><FilterToggle open={filterOpen} onToggle={() => setFilterOpen(!filterOpen)} activeCount={filters.activeCount} /></>}
       />
 
       <div className="flex flex-col items-start gap-4 lg:flex-row lg:gap-0">
@@ -93,7 +93,7 @@ export default function BillsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filtered.length === 0 && <EmptyRow colSpan={6} title={hasFilters ? t('bills.noResults') : t('bills.noBills')} hint={hasFilters ? t('bills.noResultsHint') : t('bills.noBillsHint')} action={!hasFilters && <Button icon="plus" onClick={() => navigate('/bills/new')}>{t('bills.addBill')}</Button>} />}
+                    {filtered.length === 0 && <EmptyRow colSpan={6} title={hasFilters ? t('bills.noResults') : t('bills.noBills')} hint={hasFilters ? t('bills.noResultsHint') : t('bills.noBillsHint')} action={!hasFilters && <Button icon="bills" onClick={() => navigate('/bills/new')}>{t('bills.addBill')}</Button>} />}
                     {paged.map((bill) => {
                       const paid = bill.statusCode === Status.Paid;
                       const overdue = isOverdue(bill);

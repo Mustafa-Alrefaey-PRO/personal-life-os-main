@@ -78,13 +78,13 @@ export default function RegisterPage() {
           onChange={(userName) => update({ userName })} placeholder={t('auth.userNamePlaceholder')}
           error={fieldErrors.userName && t(fieldErrors.userName)} />
         <AuthField label={t('auth.email')} type="email" icon="mail" value={form.email} autoComplete="email"
-          onChange={(email) => update({ email })} placeholder="you@example.com"
+          onChange={(email) => update({ email })} placeholder={t('auth.emailPlaceholder')}
           error={fieldErrors.email && t(fieldErrors.email)} />
         <AuthField label={t('auth.password')} type="password" icon="lock" value={form.password} autoComplete="new-password"
-          onChange={(password) => update({ password })} placeholder="••••••••"
+          onChange={(password) => update({ password })} placeholder={t('auth.newPasswordPlaceholder')}
           error={fieldErrors.password && t(fieldErrors.password)} />
         <AuthField label={t('auth.confirmPassword')} type="password" icon="lock" value={form.confirmPassword} autoComplete="new-password"
-          onChange={(confirmPassword) => update({ confirmPassword })} placeholder="••••••••"
+          onChange={(confirmPassword) => update({ confirmPassword })} placeholder={t('auth.confirmPasswordPlaceholder')}
           error={fieldErrors.confirmPassword && t(fieldErrors.confirmPassword)} />
 
         <FormError message={error} />

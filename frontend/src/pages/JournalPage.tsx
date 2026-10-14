@@ -45,7 +45,7 @@ export default function JournalPage() {
         icon="journal"
         title={t('journal.title')}
         subtitle={t('journal.entries_count', { count: filtered.length })}
-        actions={<><Button icon="plus" onClick={() => navigate('/journal/new')}>{t('journal.newEntry')}</Button><FilterToggle open={filterOpen} onToggle={() => setFilterOpen(!filterOpen)} activeCount={filters.activeCount} /></>}
+        actions={<><Button icon="journal" onClick={() => navigate('/journal/new')}>{t('journal.newEntry')}</Button><FilterToggle open={filterOpen} onToggle={() => setFilterOpen(!filterOpen)} activeCount={filters.activeCount} /></>}
       />
 
       <div className="flex flex-col items-start gap-4 lg:flex-row lg:gap-0">
@@ -56,7 +56,7 @@ export default function JournalPage() {
                 icon="journal"
                 title={hasFilters ? t('journal.noResults') : t('journal.noEntries')}
                 hint={hasFilters ? t('journal.noResultsHint') : t('journal.noEntriesHint')}
-                action={!hasFilters && <Button icon="plus" onClick={() => navigate('/journal/new')}>{t('journal.newEntry')}</Button>}
+                action={!hasFilters && <Button icon="journal" onClick={() => navigate('/journal/new')}>{t('journal.newEntry')}</Button>}
               />
             </Card>
           ) : (

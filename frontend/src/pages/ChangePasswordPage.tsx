@@ -59,8 +59,9 @@ export default function ChangePasswordPage() {
     }
   };
 
+  const placeholders = { currentPassword: 'account.phCurrentPassword', newPassword: 'account.phNewPassword', confirmNewPassword: 'account.phConfirmPassword' } as const;
   const passwordInput = (key: keyof typeof empty, autoComplete: string) => (id: string) => (
-    <input id={id} type="password" autoComplete={autoComplete} value={form[key]}
+    <input id={id} type="password" autoComplete={autoComplete} placeholder={t(placeholders[key])} value={form[key]}
       onChange={(e) => { setForm({ ...form, [key]: e.target.value }); if (key === 'currentPassword') setCurrentWrong(false); }} />
   );
 
@@ -85,7 +86,7 @@ export default function ChangePasswordPage() {
             </FormSection>
           </div>
         </fieldset>
-        <FormPageActions onCancel={() => navigate(-1)} submitLabel={t('account.changePassword')} submitIcon="key" saving={saving} dirty={dirty} />
+        <FormPageActions backLabel={t('account.backToProfile')} onCancel={() => navigate('/profile')} submitLabel={t('account.changePassword')} submitIcon="key" saving={saving} dirty={dirty} />
       </form>
     </MainLayout>
   );

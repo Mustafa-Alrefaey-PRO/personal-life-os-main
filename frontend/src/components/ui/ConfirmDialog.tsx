@@ -26,10 +26,10 @@ export function ConfirmDialog({
       <p className="mb-6 text-sm text-body">{message}</p>
       <div className="flex justify-end gap-2">
         <Button ref={cancelRef} variant="secondary" onClick={onCancel} disabled={loading}>
-          {cancelLabel || t('common.cancel')}
+          {cancelLabel || t('common.keepIt')}
         </Button>
         <Button variant="danger" icon="trash" onClick={onConfirm} loading={loading}>
-          {confirmLabel || t('common.delete')}
+          {confirmLabel || t('common.yesDelete')}
         </Button>
       </div>
     </Modal>
