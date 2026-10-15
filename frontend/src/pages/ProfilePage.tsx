@@ -8,7 +8,7 @@ import { BrandPicker } from '../components/ui/BrandPicker';
 import { useNavigate } from 'react-router-dom';
 import { LanguageMenu } from '../components/ui/LanguageMenu';
 import { useAuthStore } from '../stores/authStore';
-import { useThemeStore } from '../stores/themeStore';
+import { ThemeSwitch } from '../components/ui/ThemeSwitch';
 import { useRamadanStore } from '../stores/ramadanStore';
 
 function SettingRow({ title, description, control }: { title: string; description: string; control: React.ReactNode }) {
@@ -27,7 +27,6 @@ export default function ProfilePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
-  const { isDarkMode, toggleTheme } = useThemeStore();
   const { enabled: ramadanEnabled, setEnabled: setRamadan } = useRamadanStore();
 
 
@@ -69,7 +68,7 @@ export default function ProfilePage() {
         <Card title={t('profile.preferences')} padded={false}>
           <div className="divide-y divide-line">
             <SettingRow title={t('profile.darkMode')} description={t('profile.darkModeDesc')}
-              control={<Toggle checked={isDarkMode} onChange={toggleTheme} label={t('profile.darkMode')} />} />
+              control={<ThemeSwitch />} />
             <SettingRow title={t('profile.ramadanMode')} description={t('profile.ramadanModeDesc')}
               control={<Toggle checked={ramadanEnabled} onChange={setRamadan} label={t('profile.ramadanMode')} />} />
             <SettingRow title={t('profile.language')} description={t('profile.languageDesc')}

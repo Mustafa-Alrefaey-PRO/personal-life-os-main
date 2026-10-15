@@ -251,8 +251,8 @@
     "fullName": "Full Name",
     "email": "Email",
     "preferences": "Preferences",
-    "darkMode": "Dark Mode",
-    "darkModeDesc": "Switch between light and dark theme",
+    "darkMode": "Theme",
+    "darkModeDesc": "Light, dark, or match your device",
     "language": "Language",
     "languageDesc": "Choose your preferred language",
     "ramadanMode": "Ramadan Theme",
@@ -301,6 +301,8 @@
     "copyright": "© {{year}} Personal Life OS — All rights reserved",
     "confirmDelete": "Delete permanently?",
     "confirmDeleteMsg": "This will be deleted for good and cannot be brought back.",
+    "confirmDeleteUndoable": "Delete this?",
+    "confirmDeleteUndoableMsg": "You can undo it for a few seconds afterwards.",
     "saveChanges": "Save Changes",
     "saving": "Saving…",
     "requiredField": "Please fill in all required fields",
@@ -343,8 +345,11 @@
     "subtext": "Wishing you a blessed and peaceful holy month."
   },
   "theme": {
-    "toLight": "Switch to light mode",
-    "toDark": "Switch to dark mode"
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "Match system",
+    "systemHint": "Match system — follows your device's light or dark setting"
   },
   "pagination": {
     "range": "{{from}}–{{to}} of {{total}}",

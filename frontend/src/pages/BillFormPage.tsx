@@ -127,7 +127,7 @@ function BillForm({ bill }: { bill?: Bill }) {
           </FormSection>
         </div>
       </fieldset>
-      <FormPageActions onCancel={backToList} saving={saving} dirty={dirty} onDelete={bill ? remove : undefined} confirmDelete={false} submitIcon={bill ? 'check' : 'bills'}
+      <FormPageActions onCancel={backToList} saving={saving} dirty={dirty} onDelete={bill ? remove : undefined} undoable submitIcon={bill ? 'check' : 'bills'}
         submitLabel={bill ? t('common.saveChanges') : t('bills.addBill')} />
     </form>
   );

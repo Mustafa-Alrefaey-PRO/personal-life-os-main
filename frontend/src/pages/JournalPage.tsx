@@ -5,8 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { formatDateLong, isInDateRange } from '../utils/formatDate';
 import { journalService } from '../services/journal.service';
 import { MainLayout } from '../components/layout/MainLayout';
-import { PageLoader } from '../components/ui/Spinner';
 import { PageHeader } from '../components/ui/PageHeader';
+import { TableSkeleton } from '../components/ui/TableSkeleton';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { IconButton } from '../components/ui/IconButton';
@@ -50,7 +50,7 @@ export default function JournalPage() {
 
       <div className="flex flex-col items-start gap-4 lg:flex-row lg:gap-0">
         <div className="w-full min-w-0 flex-1">
-          {isLoading ? <PageLoader message={t('journal.loading')} /> : filtered.length === 0 ? (
+          {isLoading ? <Card padded={false}><TableSkeleton label={t('journal.loading')} /></Card> : filtered.length === 0 ? (
             <Card>
               <EmptyState
                 icon="journal"

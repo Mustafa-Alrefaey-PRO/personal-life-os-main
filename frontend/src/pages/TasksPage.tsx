@@ -8,8 +8,9 @@ import { taskService } from '../services/task.service';
 import type { Task, TaskPriority } from '../types/task';
 import { Status } from '../types/status';
 import { MainLayout } from '../components/layout/MainLayout';
-import { PageLoader, Spinner } from '../components/ui/Spinner';
+import { Spinner } from '../components/ui/Spinner';
 import { PageHeader } from '../components/ui/PageHeader';
+import { TableSkeleton } from '../components/ui/TableSkeleton';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { IconButton } from '../components/ui/IconButton';
@@ -82,7 +83,7 @@ export default function TasksPage() {
       <div className="flex flex-col items-start gap-4 lg:flex-row lg:gap-0">
         <div className="w-full min-w-0 flex-1">
           <Card padded={false}>
-            {isLoading ? <PageLoader message={t('tasks.loading')} /> : (
+            {isLoading ? <TableSkeleton label={t('tasks.loading')} /> : (
               <>
                 <DataTable>
                   <thead>

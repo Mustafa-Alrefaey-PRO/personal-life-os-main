@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { ApiResponse } from '../types/api';
+import { useLoadingStore } from '../stores/loadingStore';
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5207';
 
@@ -16,6 +17,7 @@ const api = axios.create({
 // Request interceptor to add JWT token and set Content-Type
 api.interceptors.request.use(
   (config) => {
+    useLoadingStore.getState().start();
     if (config.method && config.method !== 'get') startedAt.set(config, Date.now());
 
     const token = localStorage.getItem('token');
@@ -47,10 +49,12 @@ const waitForMinimum = async (config: object | undefined) => {
 api.interceptors.response.use(
   async (response) => {
     await waitForMinimum(response.config);
+    useLoadingStore.getState().stop();
     return response;
   },
   async (error) => {
     await waitForMinimum(error.config);
+    useLoadingStore.getState().stop();
     // Handle 401 Unauthorized - token expired or invalid
     // Skip redirect when already on login/register to let the form show the error
     if (error.response?.status === 401) {

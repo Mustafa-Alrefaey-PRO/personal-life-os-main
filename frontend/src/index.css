@@ -236,8 +236,14 @@
   /* "backwards", not "both": a held animation would override the width transition used when the panel opens */
   --animate-tab-open: tab-open 0.7s cubic-bezier(0.25, 1, 0.5, 1) backwards;
   --animate-toast-in: toast-in 140ms ease-out;
+  /* Top loading bar: quick start, then slows towards 90% — the real end is unknown */
+  --animate-loading-creep: loading-creep 12s cubic-bezier(0.1, 0.8, 0.2, 1) both;
 }
 
+@keyframes loading-creep {
+  from { transform: scaleX(0.15); }
+  to   { transform: scaleX(0.9); }
+}
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -368,6 +374,7 @@ input:autofill { filter: none; }
 @media (prefers-reduced-motion: reduce) {
   .page-stagger > * { animation: none; }
   .animate-toast-in { animation: none; }
+  .animate-loading-creep { animation: none; transform: scaleX(0.6); }
 }
 
 /* Mobile sidebar slides in from the start edge */

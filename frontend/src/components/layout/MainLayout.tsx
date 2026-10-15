@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useSidebarStore } from '../../stores/sidebarStore';
-import { DarkModeToggle } from '../ui/DarkModeToggle';
+import { ThemeSwitch } from '../ui/ThemeSwitch';
 import { RamadanBanner } from '../ui/RamadanBanner';
 import { Icon, type IconName } from '../ui/Icon';
 import { Logo } from '../ui/Logo';
@@ -141,7 +141,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
           <div className="hidden md:block" />
           <div className="flex items-center gap-2">
             <LanguageMenu />
-            <DarkModeToggle />
+            <ThemeSwitch />
             <AccountMenu />
           </div>
         </header>

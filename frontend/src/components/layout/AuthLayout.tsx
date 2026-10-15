@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { DarkModeToggle } from '../ui/DarkModeToggle';
+import { ThemeSwitch } from '../ui/ThemeSwitch';
 import { Icon } from '../ui/Icon';
 import { Logo } from '../ui/Logo';
 import { LanguageMenu } from '../ui/LanguageMenu';
@@ -42,7 +42,7 @@ export function AuthLayout({ title, subtitle, children, footer }: AuthLayoutProp
       <main className="flex flex-1 flex-col">
         <div className="flex justify-end gap-2 p-4">
           <LanguageMenu />
-          <DarkModeToggle />
+          <ThemeSwitch />
         </div>
 
         <div className="flex flex-1 items-center justify-center px-4 pb-16">

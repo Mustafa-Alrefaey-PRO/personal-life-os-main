@@ -122,7 +122,7 @@ function TransactionForm({ tx }: { tx?: Transaction }) {
           </FormSection>
         </div>
       </fieldset>
-      <FormPageActions onCancel={backToList} saving={saving} dirty={dirty} onDelete={tx ? remove : undefined} confirmDelete={false} submitIcon={tx ? 'check' : 'transactions'}
+      <FormPageActions onCancel={backToList} saving={saving} dirty={dirty} onDelete={tx ? remove : undefined} undoable submitIcon={tx ? 'check' : 'transactions'}
         submitLabel={tx ? t('common.saveChanges') : t('transactions.addTransaction')} />
     </form>
   );

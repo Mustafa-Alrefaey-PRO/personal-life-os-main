@@ -2,16 +2,25 @@ import { create } from 'zustand';
 
 const STORAGE_KEY = 'theme';
 
+export type ThemePreference = 'light' | 'dark' | 'system';
+
 interface ThemeState {
+  /** What the user chose; "system" follows the device setting live. */
+  preference: ThemePreference;
+  /** The theme actually shown. */
   isDarkMode: boolean;
-  toggleTheme: () => void;
+  setPreference: (preference: ThemePreference) => void;
 }
 
-function readInitialTheme(): boolean {
-  // Saved preference first, then the OS setting
+const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
+
+function readPreference(): ThemePreference {
   const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) return saved === 'dark';
-  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  return saved === 'light' || saved === 'dark' ? saved : 'system';
+}
+
+function resolve(preference: ThemePreference): boolean {
+  return preference === 'system' ? systemDark.matches : preference === 'dark';
 }
 
 function applyTheme(isDarkMode: boolean) {
@@ -19,16 +28,25 @@ function applyTheme(isDarkMode: boolean) {
 }
 
 // Eagerly apply before React mounts (avoids flash-of-wrong-theme)
-const initial = readInitialTheme();
-applyTheme(initial);
+const initialPreference = readPreference();
+applyTheme(resolve(initialPreference));
 
-export const useThemeStore = create<ThemeState>((set, get) => ({
-  isDarkMode: initial,
+export const useThemeStore = create<ThemeState>((set) => ({
+  preference: initialPreference,
+  isDarkMode: resolve(initialPreference),
 
-  toggleTheme: () => {
-    const next = !get().isDarkMode;
-    localStorage.setItem(STORAGE_KEY, next ? 'dark' : 'light');
-    applyTheme(next);
-    set({ isDarkMode: next });
+  setPreference: (preference) => {
+    if (preference === 'system') localStorage.removeItem(STORAGE_KEY);
+    else localStorage.setItem(STORAGE_KEY, preference);
+    const isDarkMode = resolve(preference);
+    applyTheme(isDarkMode);
+    set({ preference, isDarkMode });
   },
 }));
+
+// "System" follows the device when it switches (e.g. automatic dark mode at sunset)
+systemDark.addEventListener('change', () => {
+  if (useThemeStore.getState().preference !== 'system') return;
+  applyTheme(systemDark.matches);
+  useThemeStore.setState({ isDarkMode: systemDark.matches });
+});

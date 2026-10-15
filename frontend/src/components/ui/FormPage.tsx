@@ -30,10 +30,10 @@ interface FormPageActionsProps {
   submitIcon?: IconName;
   saving: boolean;
   disabled?: boolean;
-  /** Details pages: deletes the record; resolves when done (the page then navigates away) */
+  /** Details pages: deletes the record after a confirm dialog; resolves when done (the page then navigates away) */
   onDelete?: () => Promise<unknown>;
-  /** Ask before deleting. Off where the delete offers Undo instead (useUndoableDelete). */
-  confirmDelete?: boolean;
+  /** The delete offers Undo afterwards (useUndoableDelete), so the dialog doesn't say "for good" */
+  undoable?: boolean;
   /** The form has unsaved edits: Cancel asks before leaving, and closing/reloading the tab warns */
   dirty?: boolean;
   /** Back button label while the form is untouched, naming where it goes (default "Back to list") */
@@ -41,7 +41,7 @@ interface FormPageActionsProps {
 }
 
 /** Delete (details pages only) + Cancel + submit under the form sections, aligned to the end. */
-export function FormPageActions({ onCancel, submitLabel, submitIcon = 'check', saving, disabled, onDelete, confirmDelete = true, dirty = false, backLabel }: FormPageActionsProps) {
+export function FormPageActions({ onCancel, submitLabel, submitIcon = 'check', saving, disabled, onDelete, undoable = false, dirty = false, backLabel }: FormPageActionsProps) {
   const { t } = useTranslation();
   const [confirming, setConfirming] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -71,7 +71,7 @@ export function FormPageActions({ onCancel, submitLabel, submitIcon = 'check', s
   return (
     <div className="mt-5 flex flex-wrap justify-end gap-3">
       {onDelete && (
-        <Button variant="dangerOutline" icon="trash" onClick={() => (confirmDelete ? setConfirming(true) : void onDelete())} disabled={saving} className="min-w-36">{t('common.delete')}</Button>
+        <Button variant="dangerOutline" icon="trash" onClick={() => setConfirming(true)} disabled={saving} className="min-w-36">{t('common.delete')}</Button>
       )}
       <Button variant="white" icon="xCircle" onClick={() => (dirty ? setLeaving(true) : onCancel())} disabled={saving} className="min-w-36">
         {/* Says what it does: back while untouched, discard once edited */}
@@ -89,8 +89,8 @@ export function FormPageActions({ onCancel, submitLabel, submitIcon = 'check', s
       {onDelete && (
         <ConfirmDialog
           open={confirming}
-          title={t('common.confirmDelete')}
-          message={t('common.confirmDeleteMsg')}
+          title={undoable ? t('common.confirmDeleteUndoable') : t('common.confirmDelete')}
+          message={undoable ? t('common.confirmDeleteUndoableMsg') : t('common.confirmDeleteMsg')}
           loading={deleting}
           onConfirm={deleteConfirmed}
           onCancel={() => setConfirming(false)}

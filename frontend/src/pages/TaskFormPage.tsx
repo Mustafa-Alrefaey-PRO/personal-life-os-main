@@ -141,7 +141,7 @@ function TaskForm({ task }: { task?: Task }) {
           </FormSection>
         </div>
       </fieldset>
-      <FormPageActions onCancel={backToList} saving={saving} dirty={dirty} onDelete={task ? remove : undefined} confirmDelete={false} submitIcon={task ? 'check' : 'tasks'}
+      <FormPageActions onCancel={backToList} saving={saving} dirty={dirty} onDelete={task ? remove : undefined} undoable submitIcon={task ? 'check' : 'tasks'}
         submitLabel={task ? t('common.saveChanges') : t('tasks.createTask')} />
     </form>
   );

@@ -96,7 +96,7 @@ function JournalForm({ entry }: { entry?: JournalEntry }) {
           </FormField>
         </FormSection>
       </fieldset>
-      <FormPageActions onCancel={backToList} saving={saving} dirty={dirty} onDelete={entry ? remove : undefined} confirmDelete={false} submitIcon={entry ? 'check' : 'journal'}
+      <FormPageActions onCancel={backToList} saving={saving} dirty={dirty} onDelete={entry ? remove : undefined} undoable submitIcon={entry ? 'check' : 'journal'}
         submitLabel={entry ? t('journal.saveChanges') : t('journal.save')} />
     </form>
   );

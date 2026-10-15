@@ -6,6 +6,7 @@ import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { GuestRoute } from './components/layout/GuestRoute';
 import { useAuthStore } from './stores/authStore';
 import { ToastProvider } from './components/ui/Toast';
+import { TopLoadingBar } from './components/ui/TopLoadingBar';
 
 // Each page is its own chunk, so e.g. the charts library only loads with the dashboard
 const LoginPage = lazy(() => import('./pages/LoginPage'));
@@ -70,6 +71,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        <TopLoadingBar />
         <ToastProvider>
           <AppRoutes />
         </ToastProvider>
